@@ -10,7 +10,9 @@ class AppTheme {
     primaryColor: const Color(0xFF2563EB),
 
     appBarTheme: const AppBarTheme(
+
       backgroundColor: Colors.white,
+
       foregroundColor: Color(0xFF0F172A),
       elevation: 0,
       centerTitle: false,

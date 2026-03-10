@@ -6,6 +6,7 @@ import 'package:untitled55/theme.dart';
 import 'UI/pages/login_page.dart';
 
 void main() async {
+
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -20,6 +21,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+
       debugShowCheckedModeBanner: true,
       theme: AppTheme.lightTheme,
       home: check ?RoomsPage() :LoginScreen() ,
