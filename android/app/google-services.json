@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "791982074033",
+    "project_id": "smart-home-318e6",
+    "storage_bucket": "smart-home-318e6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:791982074033:android:2dd56714722997b0eada90",
+        "android_client_info": {
+          "package_name": "com.example.untitled55"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDV-jnOiyjNWxFqLUJI8n1HVvl7GxQC3lk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
