@@ -288,8 +288,6 @@ class _RoomsPageState extends State<RoomsPage> {
                     });
                     roomDevices[name] = [];
                   });
-
-
                 }
 
                 Navigator.pop(context);
