@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
 
       debugShowCheckedModeBanner: true,
-      theme: AppTheme.lightTheme,
+      theme: AppTheme.darkTheme,
       home: check ?RoomsPage() :LoginScreen() ,
     );
   }

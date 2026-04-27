@@ -4,98 +4,126 @@ class DeviceCard extends StatefulWidget {
   final String iconPath;
   final String name;
   final bool isOn;
-  final Function(bool)? onToggle;
-  final VoidCallback? onDelete;
+  final Function(bool) onToggle;
+  final VoidCallback onDelete;
 
   const DeviceCard({
-    super.key,
+    Key? key,
     required this.iconPath,
     required this.name,
     required this.isOn,
-    this.onToggle,
-    this.onDelete,
-  });
+    required this.onToggle,
+    required this.onDelete,
+  }) : super(key: key);
 
   @override
   State<DeviceCard> createState() => _DeviceCardState();
 }
 
 class _DeviceCardState extends State<DeviceCard> {
-  late bool toggle;
+  late bool isOn;
 
   @override
   void initState() {
     super.initState();
-    toggle = widget.isOn;
+    isOn = widget.isOn;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor
-            ,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Image.asset(
-                  widget.iconPath,
-                  height: 50,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                widget.name,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                toggle ? "On" : "Off",
-                style: TextStyle(color: Colors.white.withOpacity(0.6)),
-              ),
-              const Spacer(),
-              Align(
-                alignment: Alignment.bottomRight,
-                child: Switch(
-                  value: toggle,
-                  activeColor: const Color(0xFFF55E5E),
-                  inactiveThumbColor: const Color(0xFF4A80F0),
-                  onChanged: (val) {
-                    setState(() {
-                      toggle = val;
-                    });
-
-                    if (widget.onToggle != null) {
-                      widget.onToggle!(val);
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        // ✅ Glass Effect (شفاف)
+        color: Colors.white.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.2),
         ),
-
-        // زر حذف الجهاز
-        Positioned(
-          right: 4,
-          top: 4,
-          child: IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: widget.onDelete,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
           ),
-        ),
-      ],
+        ],
+      ),
+
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          /// 🗑 زر الحذف
+          Align(
+            alignment: Alignment.topRight,
+            child: GestureDetector(
+              onTap: widget.onDelete,
+              child: const Icon(
+                Icons.delete,
+                color: Colors.red,
+                size: 18,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          /// 💡 الأيقونة
+          Center(
+            child: Image.asset(
+              widget.iconPath,
+              height: 36,
+              color: isOn ? Colors.orange : Colors.white70,
+            ),
+          ),
+
+          const Spacer(),
+
+          /// 📛 اسم الجهاز
+          Text(
+            widget.name,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 4),
+
+          /// 🔄 الحالة
+          Text(
+            isOn ? "On" : "Off",
+            style: TextStyle(
+              color: isOn ? Colors.greenAccent : Colors.white70,
+              fontSize: 12,
+            ),
+          ),
+
+          const Spacer(),
+
+          /// 🔘 السويتش
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Transform.scale(
+              scale: 0.85,
+              child: Switch(
+                value: isOn,
+                activeColor: Colors.orange,
+                activeTrackColor: Colors.orange.withOpacity(0.4),
+                inactiveThumbColor: Colors.grey,
+                inactiveTrackColor: Colors.white24,
+                onChanged: (val) {
+                  setState(() {
+                    isOn = val;
+                  });
+                  widget.onToggle(val);
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
-

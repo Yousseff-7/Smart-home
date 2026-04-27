@@ -12,189 +12,171 @@ class _SettingsPageState extends State<SettingsPage> {
   bool notifications = true;
   bool darkMode = true;
 
+  final Color primaryColor = const Color(0xFFF59E0B);
+
   @override
   Widget build(BuildContext context) {
-    final primaryColor = const Color(0xFF6C63FF);
-
     return Scaffold(
-      backgroundColor: darkMode ? const Color(0xFF0F172A) : Colors.white,
-      appBar: AppBar( 
-        leading: Icon(Icons.arrow_back,color:darkMode ? Colors.white : const Color(0xFF0F172A),),
+      backgroundColor: const Color(0xFF0F0F0F),
+
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        backgroundColor: darkMode ? const Color(0xFF0F172A) : Colors.white,
-        centerTitle: true,
-        title: Text(
+
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+
+        title: const Text(
           "Settings",
           style: TextStyle(
+            color: Colors.white,
             fontWeight: FontWeight.bold,
-            color: darkMode ? Colors.white : const Color(0xFF0F172A),
           ),
         ),
       ),
+
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        padding: const EdgeInsets.all(20),
         children: [
-          /// ACCOUNT
-          Text(
+
+          /// ===== ACCOUNT =====
+          const Text(
             "Account",
             style: TextStyle(
-              color: darkMode ? Colors.white : const Color(0xFF0F172A),
+              color: Colors.white70,
               fontSize: 14,
-              fontWeight: FontWeight.w500,
             ),
           ),
+
           const SizedBox(height: 12),
 
-          _buildCard(
-            children: [
-              _buildTile(Icons.person, "Edit Profile", onTap: () {}),
-              const Divider(height: 1, color: Colors.white10),
-              _buildTile(Icons.lock, "Change Password", onTap: () {}),
-            ],
-          ),
+          _card([
+            _tile(Icons.person, "Edit Profile"),
+            _divider(),
+            _tile(Icons.lock, "Change Password"),
+          ]),
 
-          const SizedBox(height: 30),
+          const SizedBox(height: 25),
 
-          /// PREFERENCES
-          Text(
+          /// ===== PREFERENCES =====
+          const Text(
             "Preferences",
             style: TextStyle(
-              color: darkMode ? Colors.white : const Color(0xFF0F172A),
+              color: Colors.white70,
               fontSize: 14,
-              fontWeight: FontWeight.w500,
             ),
           ),
+
           const SizedBox(height: 12),
 
-          _buildCard(
-            children: [
-              SwitchListTile(
-                activeColor: primaryColor,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: const Text(
-                  "Notifications",
-                  style: TextStyle(color: Colors.white),
-                ),
-                value: notifications,
-                onChanged: (val) {
-                  setState(() => notifications = val);
-                },
-              ),
-              const Divider(height: 1, color: Colors.white10),
-              SwitchListTile(
-                activeColor: primaryColor,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                title: const Text(
-                  "Dark Mode",
-                  style: TextStyle(color: Colors.white),
-                ),
-                value: darkMode,
-                onChanged: (val) {
-                  setState(() => darkMode = val);
-                },
-              ),
-            ],
-          ),
+          _card([
+            _switchTile("Notifications", notifications, (val) {
+              setState(() => notifications = val);
+            }),
+            _divider(),
+            _switchTile("Dark Mode", darkMode, (val) {
+              setState(() => darkMode = val);
+            }),
+          ]),
 
-          const SizedBox(height: 30),
+          const SizedBox(height: 25),
 
-          Text(
+          /// ===== ABOUT =====
+          const Text(
             "About",
             style: TextStyle(
-              color: darkMode ? Colors.white : const Color(0xFF0F172A),
+              color: Colors.white70,
               fontSize: 14,
-              fontWeight: FontWeight.w500,
             ),
           ),
+
           const SizedBox(height: 12),
 
-          _buildCard(
-            children: const [
-              ListTile(
-                leading: Icon(Icons.info_outline, color: Colors.white),
-                title: Text(
-                  "App Version",
-                  style: TextStyle(color: Colors.white),
-                ),
-                trailing: Text(
-                  "1.0.0",
-                  style: TextStyle(color: Colors.white70),
-                ),
+          _card([
+            ListTile(
+              leading: const Icon(Icons.info_outline, color: Colors.white70),
+              title: const Text(
+                "App Version",
+                style: TextStyle(color: Colors.white),
               ),
-            ],
-          ),
+              trailing: const Text(
+                "1.0.0",
+                style: TextStyle(color: Colors.white54),
+              ),
+            ),
+          ]),
 
           const SizedBox(height: 40),
 
-          /// LOGOUT BUTTON
+          /// ===== LOGOUT =====
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              elevation: 5,
+              backgroundColor: primaryColor,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(16),
               ),
               minimumSize: const Size(double.infinity, 55),
             ),
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.black),
             label: const Text(
               "Logout",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             onPressed: () {
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
-                (route) => false,
+                    (route) => false,
               );
             },
           ),
-
-          const SizedBox(height: 20),
         ],
       ),
     );
   }
 
-  Widget _buildCard({required List<Widget> children}) {
+  /// ===== CARD =====
+  Widget _card(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 10,
-            offset: Offset(0, 6),
-          ),
-        ],
+        color: const Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(children: children),
     );
   }
 
-  Widget _buildTile(
-    IconData icon,
-    String title, {
-    required VoidCallback onTap,
-  }) {
+  /// ===== TILE =====
+  Widget _tile(IconData icon, String title) {
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white10,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, color: Colors.white),
-      ),
+      leading: Icon(icon, color: Colors.white),
       title: Text(title, style: const TextStyle(color: Colors.white)),
-      trailing: const Icon(
-        Icons.arrow_forward_ios,
-        size: 16,
-        color: Colors.white38,
-      ),
-      onTap: onTap,
+      trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white38, size: 16),
+      onTap: () {},
     );
+  }
+
+  /// ===== SWITCH TILE =====
+  Widget _switchTile(String title, bool value, Function(bool) onChanged) {
+    return SwitchListTile(
+      value: value,
+      onChanged: onChanged,
+      activeColor: Colors.black,
+      activeTrackColor: primaryColor,
+      title: Text(
+        title,
+        style: const TextStyle(color: Colors.white),
+      ),
+    );
+  }
+
+  /// ===== DIVIDER =====
+  Widget _divider() {
+    return const Divider(color: Colors.white10, height: 1);
   }
 }

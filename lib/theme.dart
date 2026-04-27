@@ -2,46 +2,51 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
 
-  static ThemeData lightTheme = ThemeData(
-    brightness: Brightness.light,
+  static ThemeData darkTheme = ThemeData(
+    brightness: Brightness.dark,
 
-    scaffoldBackgroundColor: const Color(0xFFF1F5F9),
+    /// الخلفية الأساسية
+    scaffoldBackgroundColor: const Color(0xFF0F0F0F),
 
-    primaryColor: const Color(0xFF2563EB),
+    /// اللون الأساسي (برتقالي)
+    primaryColor: const Color(0xFFF59E0B),
 
+    colorScheme: const ColorScheme.dark(
+      primary: Color(0xFFF59E0B),
+      secondary: Color(0xFFFBBF24),
+      surface: Color(0xFF1E1E1E),
+      onPrimary: Colors.black,
+      onSurface: Colors.white,
+    ),
+
+    /// AppBar
     appBarTheme: const AppBarTheme(
-
-      backgroundColor: Colors.white,
-
-      foregroundColor: Color(0xFF0F172A),
+      backgroundColor: Colors.transparent,
       elevation: 0,
+      foregroundColor: Colors.white,
       centerTitle: false,
     ),
 
-    cardColor: Colors.white,
+    /// الكروت
+    cardColor: const Color(0xFF1E1E1E),
 
-    colorScheme: const ColorScheme.light(
-      primary: Color(0xFF2563EB),
-      secondary: Color(0xFF38BDF8),
-      surface: Colors.white,
-      onPrimary: Colors.white,
-      onSurface: Color(0xFF0F172A),
-    ),
-
+    /// النصوص
     textTheme: const TextTheme(
       titleLarge: TextStyle(
-        color: Color(0xFF0F172A),
+        color: Colors.white,
         fontWeight: FontWeight.bold,
       ),
       bodyMedium: TextStyle(
-        color: Color(0xFF334155),
+        color: Colors.white70,
       ),
     ),
 
+
+    /// الأزرار
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF2563EB),
-        foregroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF59E0B),
+        foregroundColor: Colors.black,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -49,9 +54,11 @@ class AppTheme {
       ),
     ),
 
+    /// TextField
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.white,
+      fillColor: const Color(0xFF1E1E1E),
+      hintStyle: const TextStyle(color: Colors.white54),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide.none,

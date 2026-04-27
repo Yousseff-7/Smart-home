@@ -17,8 +17,7 @@ class DashboardChartsPage extends StatefulWidget {
   State<DashboardChartsPage> createState() => _DashboardChartsPageState();
 }
 
-class _DashboardChartsPageState extends State<DashboardChartsPage>
-    with TickerProviderStateMixin {
+class _DashboardChartsPageState extends State<DashboardChartsPage> {
   int selectedTab = 0;
 
   @override
@@ -38,26 +37,138 @@ class _DashboardChartsPageState extends State<DashboardChartsPage>
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xff121212),
+      backgroundColor: const Color(0xFF121212),
+
       appBar: AppBar(
-        leading: IconButton(onPressed: (){
-          Navigator.pop(context);
-        }, icon:Icon( Icons.arrow_back_ios_new_rounded)),
+        backgroundColor: Colors.black,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+        ),
         title: const Text(
           "Live Sensors Dashboard",
           style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: Colors.black,
         centerTitle: true,
       ),
 
-      body: Expanded(
+      body: SingleChildScrollView(
         child: Column(
           children: [
-            const SizedBox(height: 10),
 
-            /// -----------  TABS (Current / Voltage / Power) -------------
+            const SizedBox(height: 15),
 
+            /// ================= CONSUMPTION HEADER =================
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Consumption",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Row(
+                      children: [
+                        Text("Months", style: TextStyle(color: Colors.white)),
+                        SizedBox(width: 4),
+                        Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            /// ================= CONSUMPTION CHART =================
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1E1E),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: SizedBox(
+                height: 200,
+                child: LineChart(
+                  LineChartData(
+                    minY: 0,
+                    maxY: 300,
+
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                    ),
+
+                    titlesData: FlTitlesData(
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          interval: 1,
+                          getTitlesWidget: (value, meta) {
+                            const months = ["Jan", "Feb", "Mar", "Apr", "May"];
+                            return Text(
+                              months[value.toInt()],
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+
+                      topTitles: AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+
+                      rightTitles: AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                    ),
+
+                    lineBarsData: [
+                      LineChartBarData(
+                        isCurved: true,
+                        color: Colors.cyan,
+                        barWidth: 3,
+                        dotData: FlDotData(show: true),
+
+                        spots: const [
+                          FlSpot(0, 120),
+                          FlSpot(1, 150),
+                          FlSpot(2, 218),
+                          FlSpot(3, 200),
+                          FlSpot(4, 170),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            /// ================= TABS =================
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
@@ -79,18 +190,18 @@ class _DashboardChartsPageState extends State<DashboardChartsPage>
                             : Colors.black26,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color:
-                          isActive ? colors[index] : Colors.white12,
-                          width: isActive ? 1.4 : 0.7,
+                          color: isActive
+                              ? colors[index]
+                              : Colors.white12,
                         ),
                       ),
                       child: Text(
                         tabs[index],
                         style: TextStyle(
-                          color: isActive ? colors[index] : Colors.white70,
-                          fontSize: 15,
-                          fontWeight:
-                          isActive ? FontWeight.bold : FontWeight.w400,
+                          color: isActive
+                              ? colors[index]
+                              : Colors.white70,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
@@ -99,16 +210,13 @@ class _DashboardChartsPageState extends State<DashboardChartsPage>
               ),
             ),
 
-
             const SizedBox(height: 20),
 
-            /// -----------  ACTIVE CHART  ----------------
+            /// ================= ACTIVE CHART =================
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 350),
-                transitionBuilder: (child, animation) =>
-                    FadeTransition(opacity: animation, child: child),
                 child: _buildChartCard(
                   title: tabs[selectedTab],
                   values: dataSets[selectedTab],
@@ -117,13 +225,15 @@ class _DashboardChartsPageState extends State<DashboardChartsPage>
                 ),
               ),
             ),
+
+            const SizedBox(height: 30),
           ],
         ),
       ),
     );
   }
 
-  /// --------------------- Chart Card -----------------------
+  /// ================= CHART CARD =================
   Widget _buildChartCard({
     required String title,
     required List<double> values,
@@ -134,34 +244,26 @@ class _DashboardChartsPageState extends State<DashboardChartsPage>
       key: key,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.black26,
+        color: const Color(0xFF1A1A1A),
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.2),
-            spreadRadius: 1,
-            blurRadius: 10,
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// Title
+
           Text(
             "$title Chart",
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
 
           const SizedBox(height: 15),
 
-          /// Chart
           SizedBox(
-            height: 500,
+            height: 200,
             child: LineChartWidget(values: values, color: color),
           ),
         ],
@@ -170,14 +272,16 @@ class _DashboardChartsPageState extends State<DashboardChartsPage>
   }
 }
 
-//
-// ================== LINE CHART WIDGET ======================
-//
+/// ================= LINE CHART =================
 class LineChartWidget extends StatelessWidget {
   final List<double> values;
   final Color color;
 
-  const LineChartWidget({super.key, required this.values, required this.color});
+  const LineChartWidget({
+    super.key,
+    required this.values,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -190,41 +294,28 @@ class LineChartWidget extends StatelessWidget {
         minY: 0,
         maxY: maxY,
 
-        gridData: FlGridData(
-          show: true,
-          horizontalInterval: maxY / 5,
-          drawVerticalLine: false,
-          getDrawingHorizontalLine: (value) => FlLine(
-            color: Colors.white12,
-            strokeWidth: 1,
-          ),
-        ),
+        gridData: FlGridData(show: true),
 
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              interval: 1,
               getTitlesWidget: (v, meta) => Text(
                 v.toInt().toString(),
                 style: const TextStyle(color: Colors.white70, fontSize: 10),
               ),
             ),
           ),
+
           leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              interval: maxY / 5,
-              getTitlesWidget: (v, meta) => Text(
-                v.toInt().toString(),
-                style: const TextStyle(color: Colors.white70, fontSize: 10),
-              ),
-            ),
-          ),
-          topTitles: const AxisTitles(
             sideTitles: SideTitles(showTitles: false),
           ),
-          rightTitles: const AxisTitles(
+
+          topTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+
+          rightTitles: AxisTitles(
             sideTitles: SideTitles(showTitles: false),
           ),
         ),
@@ -239,18 +330,6 @@ class LineChartWidget extends StatelessWidget {
             isCurved: true,
             color: color,
             barWidth: 3,
-            dotData: FlDotData(show: false),
-            belowBarData: BarAreaData(
-              show: true,
-              gradient: LinearGradient(
-                colors: [
-                  color.withOpacity(0.4),
-                  Colors.transparent,
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
           ),
         ],
       ),
