@@ -195,7 +195,7 @@ class _RoomsPageState extends State<RoomsPage> {
                   subtitle: "Devices: ${roomDevices[title]?.length ?? 0}",
                   imageUrl: room['image'],
                   onTap: () async {
-                    await Navigator.push(
+                    final updatedDevices = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => DynamicDevicesPage(
@@ -204,6 +204,12 @@ class _RoomsPageState extends State<RoomsPage> {
                         ),
                       ),
                     );
+
+                    if (updatedDevices != null) {
+                      setState(() {
+                        roomDevices[title] = updatedDevices;
+                      });
+                    }
                     setState(() {});
                   },
                 );

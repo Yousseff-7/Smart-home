@@ -19,6 +19,7 @@ class DashboardChartsPage extends StatefulWidget {
 
 class _DashboardChartsPageState extends State<DashboardChartsPage> {
   int selectedTab = 0;
+  int selectedTime = 2; // 👈 Month default
 
   @override
   Widget build(BuildContext context) {
@@ -62,8 +63,8 @@ class _DashboardChartsPageState extends State<DashboardChartsPage> {
             /// ================= CONSUMPTION HEADER =================
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     "Consumption",
@@ -74,19 +75,47 @@ class _DashboardChartsPageState extends State<DashboardChartsPage> {
                     ),
                   ),
 
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Row(
-                      children: [
-                        Text("Months", style: TextStyle(color: Colors.white)),
-                        SizedBox(width: 4),
-                        Icon(Icons.keyboard_arrow_down, color: Colors.white),
-                      ],
-                    ),
+                  const SizedBox(height: 12),
+
+                  /// 🔥 TIME FILTER
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(4, (index) {
+                      final tabs = ["Today", "Week", "Month", "Year"];
+                      final isSelected = selectedTime == index;
+
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedTime = index;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? const Color(0xFFF59E0B)
+                                : Colors.black26,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected
+                                  ? const Color(0xFFF59E0B)
+                                  : Colors.white12,
+                            ),
+                          ),
+                          child: Text(
+                            tabs[index],
+                            style: TextStyle(
+                              color: isSelected
+                                  ? Colors.black
+                                  : Colors.white70,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
                   ),
                 ],
               ),
@@ -108,12 +137,10 @@ class _DashboardChartsPageState extends State<DashboardChartsPage> {
                   LineChartData(
                     minY: 0,
                     maxY: 300,
-
                     gridData: FlGridData(
                       show: true,
                       drawVerticalLine: false,
                     ),
-
                     titlesData: FlTitlesData(
                       bottomTitles: AxisTitles(
                         sideTitles: SideTitles(
@@ -131,27 +158,22 @@ class _DashboardChartsPageState extends State<DashboardChartsPage> {
                           },
                         ),
                       ),
-
                       leftTitles: AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
                       ),
-
                       topTitles: AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
                       ),
-
                       rightTitles: AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
                       ),
                     ),
-
                     lineBarsData: [
                       LineChartBarData(
                         isCurved: true,
                         color: Colors.cyan,
                         barWidth: 3,
                         dotData: FlDotData(show: true),
-
                         spots: const [
                           FlSpot(0, 120),
                           FlSpot(1, 150),
@@ -168,7 +190,7 @@ class _DashboardChartsPageState extends State<DashboardChartsPage> {
 
             const SizedBox(height: 20),
 
-            /// ================= TABS =================
+            /// ================= TABS (UNCHANGED) =================
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
@@ -233,7 +255,6 @@ class _DashboardChartsPageState extends State<DashboardChartsPage> {
     );
   }
 
-  /// ================= CHART CARD =================
   Widget _buildChartCard({
     required String title,
     required List<double> values,
@@ -250,7 +271,6 @@ class _DashboardChartsPageState extends State<DashboardChartsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Text(
             "$title Chart",
             style: const TextStyle(
@@ -259,9 +279,7 @@ class _DashboardChartsPageState extends State<DashboardChartsPage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-
           const SizedBox(height: 15),
-
           SizedBox(
             height: 200,
             child: LineChartWidget(values: values, color: color),
@@ -272,7 +290,6 @@ class _DashboardChartsPageState extends State<DashboardChartsPage> {
   }
 }
 
-/// ================= LINE CHART =================
 class LineChartWidget extends StatelessWidget {
   final List<double> values;
   final Color color;
@@ -293,9 +310,7 @@ class LineChartWidget extends StatelessWidget {
         maxX: (values.length - 1).toDouble(),
         minY: 0,
         maxY: maxY,
-
         gridData: FlGridData(show: true),
-
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
@@ -306,20 +321,16 @@ class LineChartWidget extends StatelessWidget {
               ),
             ),
           ),
-
           leftTitles: AxisTitles(
             sideTitles: SideTitles(showTitles: false),
           ),
-
           topTitles: AxisTitles(
             sideTitles: SideTitles(showTitles: false),
           ),
-
           rightTitles: AxisTitles(
             sideTitles: SideTitles(showTitles: false),
           ),
         ),
-
         lineBarsData: [
           LineChartBarData(
             spots: values

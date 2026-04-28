@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../pages/Aipage.dart';
+import '../pages/DashboardChartsPage.dart';
+
 class DeviceCard extends StatefulWidget {
   final String iconPath;
   final String name;
@@ -22,6 +25,7 @@ class DeviceCard extends StatefulWidget {
 
 class _DeviceCardState extends State<DeviceCard> {
   late bool isOn;
+  bool isWarning = false;
 
   @override
   void initState() {
@@ -32,28 +36,29 @@ class _DeviceCardState extends State<DeviceCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      width: double.infinity,
+      padding: const EdgeInsets.all(2),
+
       decoration: BoxDecoration(
-        // ✅ Glass Effect (شفاف)
-        color: Colors.white.withOpacity(0.12),
+        color: isOn
+            ? const Color(0xFFCE672C)
+            : Colors.white,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 5),
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 10,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
 
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min, // 👈 مهم جدًا
         children: [
 
-          /// 🗑 زر الحذف
+          /// DELETE
           Align(
             alignment: Alignment.topRight,
             child: GestureDetector(
@@ -61,65 +66,119 @@ class _DeviceCardState extends State<DeviceCard> {
               child: const Icon(
                 Icons.delete,
                 color: Colors.red,
-                size: 18,
+                size: 30,
               ),
             ),
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 5),
 
-          /// 💡 الأيقونة
+          /// ICON
           Center(
             child: Image.asset(
               widget.iconPath,
-              height: 36,
-              color: isOn ? Colors.orange : Colors.white70,
+              height: 50,
             ),
           ),
 
-          const Spacer(),
+          const SizedBox(height: 12),
 
-          /// 📛 اسم الجهاز
+          /// NAME
           Text(
             widget.name,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 15,
+            style: TextStyle(
+              color: isOn ? Colors.white : Colors.black87,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
 
           const SizedBox(height: 4),
 
-          /// 🔄 الحالة
+          /// STATUS
           Text(
             isOn ? "On" : "Off",
             style: TextStyle(
-              color: isOn ? Colors.greenAccent : Colors.white70,
-              fontSize: 12,
+              color: isOn ? Colors.white70 : Colors.black54,
+              fontSize: 13,
             ),
           ),
 
-          const Spacer(),
+          const SizedBox(height: 10),
+          Row(
+            children: [
 
-          /// 🔘 السويتش
+              /// 📊 Stats Button
+              Expanded(
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => DashboardChartsPage(
+                          currentValues: [1,2,3],
+                          voltageValues: [220,221],
+                          powerValues: [40,50],
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.bar_chart, size: 18),
+                  label: const Text("Stats"),
+                ),
+              ),
+
+              const SizedBox(width: 10),
+
+              /// 🤖 AI Status (Chip Style)
+              GestureDetector(
+                onTap: () { Navigator.push( context, MaterialPageRoute( builder: (_) => const AiPage(), ), ); },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isWarning ? Colors.red : Colors.green,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isWarning ? Icons.warning : Icons.check_circle,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        isWarning ? "Warning" : "Normal",
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          /// SWITCH
           Align(
             alignment: Alignment.bottomRight,
-            child: Transform.scale(
-              scale: 0.85,
-              child: Switch(
-                value: isOn,
-                activeColor: Colors.orange,
-                activeTrackColor: Colors.orange.withOpacity(0.4),
-                inactiveThumbColor: Colors.grey,
-                inactiveTrackColor: Colors.white24,
-                onChanged: (val) {
-                  setState(() {
-                    isOn = val;
-                  });
-                  widget.onToggle(val);
-                },
-              ),
+            child: Switch(
+              value: isOn,
+              activeColor: Colors.white,
+              activeTrackColor: Colors.black,
+              inactiveThumbColor: Colors.orange,
+              onChanged: (val) {
+                setState(() {
+                  isOn = val;
+                });
+                widget.onToggle(val);
+              },
             ),
           ),
         ],

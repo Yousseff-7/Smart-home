@@ -9,6 +9,7 @@ class DynamicDevicesPage extends StatefulWidget {
   final List<Map<String, dynamic>> devices;
 
   const DynamicDevicesPage({
+
     super.key,
     required this.roomName,
     required this.devices,
@@ -19,28 +20,26 @@ class DynamicDevicesPage extends StatefulWidget {
 }
 
 class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
+
   late List<Map<String, dynamic>> devices;
 
-  AlertModel? alert;
-  bool isLoadingAlert = true;
+  /// ✅ FIX هنا
+  String? selectedDevice;
 
-  /// 🔥 Sensor data (مؤقت لحد API)
+  AlertModel? alert;
   double temperature = 26;
   double humidity = 35;
 
   @override
   void initState() {
     super.initState();
-    devices = widget.devices;
+    devices = List.from(widget.devices);
     loadAlert();
   }
 
   void loadAlert() async {
     alert = await AlertService.fetchAlert();
-
-    setState(() {
-      isLoadingAlert = false;
-    });
+    setState(() {});
   }
 
   @override
@@ -50,16 +49,20 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
 
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text(widget.roomName),
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.pop(context, devices); // 👈 ده أهم سطر
+          },
           icon: const Icon(Icons.arrow_back_ios_new_outlined),
         ),
       ),
 
       body: Stack(
         children: [
-          /// 📸 BACKGROUND
+
+          /// 🔥 BACKGROUND
           Positioned.fill(
             child: Image.asset(
               "assets/images/living room decore.jpg",
@@ -67,115 +70,52 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
             ),
           ),
 
-          /// 🌑 OVERLAY
+          /// 🔥 OVERLAY
           Positioned.fill(
             child: Container(
-              color: Colors.black.withOpacity(0.4),
+              color: Colors.black.withOpacity(0.3),
             ),
           ),
 
-          /// 🧠 CONTENT
-          Column(
-            children: [
-              const SizedBox(height: 100),
+          /// 🔥 CONTENT
+          SafeArea(
+            child: Column(
+              children: [
 
-              /// 🔔 ALERT
-              if (alert != null)
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: alert!.status == "warning"
-                        ? Colors.orange.withOpacity(0.15)
-                        : Colors.green.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: alert!.status == "warning"
-                          ? Colors.orange
-                          : Colors.green,
+                const SizedBox(height: 20),
+
+                /// 🌡 SENSOR
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _sensorItem(Icons.thermostat, "$temperature°C", "Temp"),
+                        _sensorItem(Icons.water_drop, "$humidity%", "Humidity"),
+                      ],
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        alert!.status == "warning"
-                            ? Icons.warning
-                            : Icons.check_circle,
-                        color: alert!.status == "warning"
-                            ? Colors.orange
-                            : Colors.green,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          alert!.recommendation,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
 
-              const SizedBox(height: 12),
+                const SizedBox(height: 20),
 
-              /// 🌡 SENSOR SECTION
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _sensorItem(Icons.thermostat, "$temperature°C", "Temp"),
-                    _sensorItem(Icons.water_drop, "$humidity%", "Humidity"),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              /// 📦 DEVICES
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
-                    ),
-                  ),
-
-                  child: GridView.builder(
+                /// 📦 DEVICES
+                Flexible(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
                     itemCount: devices.length,
-                    gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 0.9,
-                    ),
                     itemBuilder: (_, i) {
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => DashboardChartsPage(
-                                currentValues: [1, 2, 3, 2, 4, 5, 3],
-                                voltageValues: [220, 221, 223, 222, 224, 225, 223],
-                                powerValues: [40, 50, 45, 60, 55, 70, 65],
-                              ),
-                            ),
-                          );
-                        },
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
                         child: DeviceCard(
+
                           iconPath: devices[i]["icon"],
                           name: devices[i]["name"],
                           isOn: devices[i]["isOn"],
@@ -193,14 +133,13 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
                       );
                     },
                   ),
-                ),
-              ),
-            ],
+                )
+              ],
+            ),
           ),
         ],
       ),
 
-      /// ➕ FAB
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.orange,
         child: const Icon(Icons.add),
@@ -211,7 +150,6 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
     );
   }
 
-  /// 🌡 SENSOR ITEM
   Widget _sensorItem(IconData icon, String value, String label) {
     return Column(
       children: [
@@ -226,9 +164,10 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
     );
   }
 
-  /// ➕ ADD DEVICE DIALOG
+
   void showAddDeviceDialog(BuildContext context) {
-    String? selectedDevice;
+
+    String? selectedDevice; // 👈 خليها local
 
     final List<Map<String, String>> deviceOptions = [
       {"name": "Lamp", "icon": "assets/images/lamp.png"},
@@ -240,26 +179,35 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
 
     showDialog(
       context: context,
-      builder: (_) {
+      builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: const Color(0xFF1E293B),
-              title: const Text("Select Device",
-                  style: TextStyle(color: Colors.white)),
+
+              title: const Text(
+                "Select Device",
+                style: TextStyle(color: Colors.white),
+              ),
 
               content: DropdownButtonFormField<String>(
                 dropdownColor: const Color(0xFF1E293B),
                 style: const TextStyle(color: Colors.white),
-                hint: const Text("Choose device",
-                    style: TextStyle(color: Colors.white70)),
+
+                hint: const Text(
+                  "Choose device",
+                  style: TextStyle(color: Colors.white70),
+                ),
+
                 value: selectedDevice,
+
                 items: deviceOptions.map((device) {
                   return DropdownMenuItem(
                     value: device["name"],
                     child: Text(device["name"]!),
                   );
                 }).toList(),
+
                 onChanged: (value) {
                   setDialogState(() {
                     selectedDevice = value;
@@ -269,25 +217,33 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
 
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancel",
-                      style: TextStyle(color: Colors.orange)),
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text(
+                    "Cancel",
+                    style: TextStyle(color: Colors.orange),
+                  ),
                 ),
+
                 ElevatedButton(
                   onPressed: () {
-                    if (selectedDevice != null) {
-                      var deviceData = deviceOptions.firstWhere(
-                              (d) => d["name"] == selectedDevice);
 
-                      setState(() {
-                        devices.add({
-                          "name": deviceData["name"],
-                          "icon": deviceData["icon"],
-                          "isOn": false,
-                        });
+                    print("Selected: $selectedDevice"); // 🔥 debug
+
+                    if (selectedDevice == null) return;
+
+                    final deviceData = deviceOptions.firstWhere(
+                          (d) => d["name"] == selectedDevice,
+                    );
+
+                    setState(() {
+                      devices.add({
+                        "name": deviceData["name"],
+                        "icon": deviceData["icon"],
+                        "isOn": false,
                       });
-                    }
-                    Navigator.pop(context);
+                    });
+
+                    Navigator.pop(dialogContext);
                   },
                   child: const Text("Add"),
                 ),
@@ -298,4 +254,5 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
       },
     );
   }
+
 }
