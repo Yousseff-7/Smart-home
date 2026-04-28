@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:untitled55/Logic/SignUp/states.dart';
+import 'package:http/http.dart' as http;
 
 class SignUpCubit extends Cubit<SignUpStates> {
   SignUpCubit() : super(SignUpInitialState());
@@ -21,7 +21,7 @@ class SignUpCubit extends Cubit<SignUpStates> {
       User? user = userCredential.user;
 
       if (user != null) {
-        String uid = user.ud;
+        String uid = user.uid;
 
         await http.post(
           Uri.parse("http://64.225.101.222:5000/api/auth/register"),
