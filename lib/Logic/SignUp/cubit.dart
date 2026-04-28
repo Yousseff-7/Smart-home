@@ -21,7 +21,7 @@ class SignUpCubit extends Cubit<SignUpStates> {
       User? user = userCredential.user;
 
       if (user != null) {
-        String uid = user.uid;
+        String uid = user.ud;
 
         await http.post(
           Uri.parse("http://64.225.101.222:5000/api/auth/register"),
