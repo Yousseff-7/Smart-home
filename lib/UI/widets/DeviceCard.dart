@@ -37,17 +37,15 @@ class _DeviceCardState extends State<DeviceCard> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(2),
+      padding: const EdgeInsets.all(16),
 
       decoration: BoxDecoration(
-        color: isOn
-            ? const Color(0xFFCE672C)
-            : Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        color: isOn ? const Color(0xFFCE672C) : const Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 15,
             offset: const Offset(0, 6),
           ),
         ],
@@ -55,39 +53,58 @@ class _DeviceCardState extends State<DeviceCard> {
 
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min, // 👈 مهم جدًا
+        mainAxisSize: MainAxisSize.min,
         children: [
 
-          /// DELETE
-          Align(
-            alignment: Alignment.topRight,
-            child: GestureDetector(
-              onTap: widget.onDelete,
-              child: const Icon(
-                Icons.delete,
-                color: Colors.red,
-                size: 30,
+          /// 🔝 TOP ROW (Delete + Switch)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+
+              GestureDetector(
+                onTap: widget.onDelete,
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.delete, color: Colors.red, size: 18),
+                ),
               ),
-            ),
+
+              Switch(
+                value: isOn,
+                activeColor: Colors.white,
+                activeTrackColor: Colors.black,
+                inactiveThumbColor: Colors.orange,
+                onChanged: (val) {
+                  setState(() {
+                    isOn = val;
+                  });
+                  widget.onToggle(val);
+                },
+              ),
+            ],
           ),
 
-          const SizedBox(height: 5),
+          const SizedBox(height: 10),
 
-          /// ICON
+          /// 💡 ICON
           Center(
             child: Image.asset(
               widget.iconPath,
-              height: 50,
+              height: 45,
             ),
           ),
 
           const SizedBox(height: 12),
 
-          /// NAME
+          /// 📛 NAME
           Text(
             widget.name,
             style: TextStyle(
-              color: isOn ? Colors.white : Colors.black87,
+              color: isOn ? Colors.white : Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
@@ -95,31 +112,25 @@ class _DeviceCardState extends State<DeviceCard> {
 
           const SizedBox(height: 4),
 
-          /// STATUS
+          /// 🔄 STATUS
           Text(
             isOn ? "On" : "Off",
             style: TextStyle(
-              color: isOn ? Colors.white70 : Colors.black54,
+              color: isOn ? Colors.white70 : Colors.white60,
               fontSize: 13,
             ),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
+
+          /// 🔘 ACTIONS
           Row(
             children: [
 
-              /// 📊 Stats Button
+              /// 📊 Stats
               Expanded(
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () {
+                child: GestureDetector(
+                  onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -131,18 +142,36 @@ class _DeviceCardState extends State<DeviceCard> {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.bar_chart, size: 18),
-                  label: const Text("Stats"),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        "Stats",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
                 ),
               ),
 
               const SizedBox(width: 10),
 
-              /// 🤖 AI Status (Chip Style)
+              /// 🤖 AI STATUS
               GestureDetector(
-                onTap: () { Navigator.push( context, MaterialPageRoute( builder: (_) => const AiPage(), ), ); },
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AiPage(),
+                    ),
+                  );
+                },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
                     color: isWarning ? Colors.red : Colors.green,
                     borderRadius: BorderRadius.circular(20),
@@ -164,22 +193,6 @@ class _DeviceCardState extends State<DeviceCard> {
                 ),
               ),
             ],
-          ),
-          /// SWITCH
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Switch(
-              value: isOn,
-              activeColor: Colors.white,
-              activeTrackColor: Colors.black,
-              inactiveThumbColor: Colors.orange,
-              onChanged: (val) {
-                setState(() {
-                  isOn = val;
-                });
-                widget.onToggle(val);
-              },
-            ),
           ),
         ],
       ),

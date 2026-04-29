@@ -67,20 +67,20 @@ class _RoomsPageState extends State<RoomsPage> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ProfilePage(
-                    roomsNumber: roomsNumber,
-                    devicesNumber: devicesNumber,
-                  ),
-                ),
-              );
-            },
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.person, color: Colors.white),
+          //   onPressed: () {
+          //     Navigator.push(
+          //       context,
+          //       MaterialPageRoute(
+          //         builder: (_) => ProfilePage(
+          //           roomsNumber: roomsNumber,
+          //           devicesNumber: devicesNumber,
+          //         ),
+          //       ),
+          //     );
+          //   },
+          // ),
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
             onPressed: () {

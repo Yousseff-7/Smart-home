@@ -47,6 +47,7 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       backgroundColor: Colors.transparent,
 
       appBar: AppBar(
@@ -145,12 +146,26 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
         ],
       ),
 
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.orange,
-        child: const Icon(Icons.add),
-        onPressed: () {
-          showAddDeviceDialog(context);
-        },
+      floatingActionButton: Container(
+        height: 60,
+        width: 60,
+        decoration: BoxDecoration(
+          color: Colors.orange,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: IconButton(
+          icon: const Icon(Icons.add, color: Colors.black),
+          onPressed: () {
+            showAddDeviceDialog(context);
+          },
+        ),
       ),
     );
   }
