@@ -1,6 +1,7 @@
+import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:untitled55/UI/pages/Profile_Page.dart';
 import '../widets/RoomCard.dart';
 import 'DynamicDevicesPage.dart';
 import 'Setting_Page.dart';
@@ -15,6 +16,8 @@ class RoomsPage extends StatefulWidget {
 
 class _RoomsPageState extends State<RoomsPage> {
   String username = "";
+
+
 
   @override
   void initState() {
@@ -235,25 +238,35 @@ class _RoomsPageState extends State<RoomsPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFF59E0B),
               ),
-              onPressed: () {
+              onPressed: () async {
                 String name = controller.text.trim();
-
                 if (name.isNotEmpty) {
-                  setState(() {
-                    rooms.add({
-                      'title': name,
-                      'image':
-                      'assets/images/living room decore.jpg',
-                    });
 
-                    AppData.roomDevices.value[name] = [];
 
-                    /// 🔥 مهم جدًا
-                    AppData.roomDevices.notifyListeners();
-                  });
+                    await Dio().post(
+                      "http://64.225.101.222:5000/api/rooms",
+                      data: {
+                        "name": name
+                      },
+                      options: Options(
+                        headers: {
+                          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWYyMTJmZDQ4ZTVmZDk4NWEzYjU4MzQiLCJpYXQiOjE3Nzc0NzgzODEsImV4cCI6MTc3ODA4MzE4MX0.Qa_JfkEJTB1khJE62nf8dz_FdIon9DdVpVmMZ0Naazk"
+                        }
+                      )
+                    );
+
+
+                      setState(() {
+                        rooms.add({
+                          'title': name,
+                          'image': 'assets/images/living room decore.jpg',
+                        });
+                      });
+
+                      Navigator.pop(context);
+
+
                 }
-
-                Navigator.pop(context);
               },
               child: const Text(
                 "Add",

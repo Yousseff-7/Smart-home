@@ -1,12 +1,14 @@
-import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:untitled55/Logic/SignUp/states.dart';
-import 'package:http/http.dart' as http;
+import 'package:untitled55/Models/user_model.dart';
 
 class SignUpCubit extends Cubit<SignUpStates> {
   SignUpCubit() : super(SignUpInitialState());
+
+  final dio = Dio();
 
   Future signUp(String userName, String userEmail, String userPass) async {
     emit(SignUpLoadingState());
@@ -23,16 +25,15 @@ class SignUpCubit extends Cubit<SignUpStates> {
       if (user != null) {
         String uid = user.uid;
 
-        await http.post(
-          Uri.parse("http://64.225.101.222:5000/api/auth/register"),
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: jsonEncode({
-            "name": userName,
-            "email": userEmail,
-            "password": userPass,
-          }),
+        UserModel userModel = UserModel(
+          name: userName,
+          email: userEmail,
+          password: userPass,
+        );
+
+        await dio.post(
+          'http://64.225.101.222:5000/api/auth/register',
+          data: userModel.toJson(),
         );
 
         final prefs = await SharedPreferences.getInstance();
