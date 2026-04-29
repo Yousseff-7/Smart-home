@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:untitled55/UI/pages/RoomsPage.dart';
 import 'package:untitled55/theme.dart';
+import 'UI/pages/MainPage.dart';
 import 'UI/pages/login_page.dart';
 
 void main() async {
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
 
       debugShowCheckedModeBanner: true,
       theme: AppTheme.darkTheme,
-      home: check ?RoomsPage() :LoginScreen() ,
+      home: check ?MainPage() :LoginScreen() ,
     );
   }
 }

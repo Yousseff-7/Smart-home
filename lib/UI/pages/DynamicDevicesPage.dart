@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/alert_model.dart';
 import '../../services/alert_service.dart';
 import '../widets/DeviceCard.dart';
+import '../../data/app_data.dart'; // 🔥 مهم
 import 'DashboardChartsPage.dart';
 
 class DynamicDevicesPage extends StatefulWidget {
@@ -9,7 +10,6 @@ class DynamicDevicesPage extends StatefulWidget {
   final List<Map<String, dynamic>> devices;
 
   const DynamicDevicesPage({
-
     super.key,
     required this.roomName,
     required this.devices,
@@ -22,9 +22,6 @@ class DynamicDevicesPage extends StatefulWidget {
 class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
 
   late List<Map<String, dynamic>> devices;
-
-  /// ✅ FIX هنا
-  String? selectedDevice;
 
   AlertModel? alert;
   double temperature = 26;
@@ -42,6 +39,11 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
     setState(() {});
   }
 
+  void updateGlobalData() {
+    AppData.roomDevices.value[widget.roomName] = devices;
+    AppData.roomDevices.notifyListeners();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,7 +55,8 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
         title: Text(widget.roomName),
         leading: IconButton(
           onPressed: () {
-            Navigator.pop(context, devices); // 👈 ده أهم سطر
+            updateGlobalData(); // 🔥 مهم
+            Navigator.pop(context, devices);
           },
           icon: const Icon(Icons.arrow_back_ios_new_outlined),
         ),
@@ -62,7 +65,6 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
       body: Stack(
         children: [
 
-          /// 🔥 BACKGROUND
           Positioned.fill(
             child: Image.asset(
               "assets/images/living room decore.jpg",
@@ -70,21 +72,18 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
             ),
           ),
 
-          /// 🔥 OVERLAY
           Positioned.fill(
             child: Container(
               color: Colors.black.withOpacity(0.3),
             ),
           ),
 
-          /// 🔥 CONTENT
           SafeArea(
             child: Column(
               children: [
 
                 const SizedBox(height: 20),
 
-                /// 🌡 SENSOR
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Container(
@@ -119,15 +118,21 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
                           iconPath: devices[i]["icon"],
                           name: devices[i]["name"],
                           isOn: devices[i]["isOn"],
+
                           onToggle: (val) {
                             setState(() {
                               devices[i]["isOn"] = val;
                             });
+
+                            updateGlobalData(); // 🔥 مهم
                           },
+
                           onDelete: () {
                             setState(() {
                               devices.removeAt(i);
                             });
+
+                            updateGlobalData(); // 🔥 مهم
                           },
                         ),
                       );
@@ -164,10 +169,9 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
     );
   }
 
-
   void showAddDeviceDialog(BuildContext context) {
 
-    String? selectedDevice; // 👈 خليها local
+    String? selectedDevice;
 
     final List<Map<String, String>> deviceOptions = [
       {"name": "Lamp", "icon": "assets/images/lamp.png"},
@@ -227,8 +231,6 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
                 ElevatedButton(
                   onPressed: () {
 
-                    print("Selected: $selectedDevice"); // 🔥 debug
-
                     if (selectedDevice == null) return;
 
                     final deviceData = deviceOptions.firstWhere(
@@ -240,8 +242,11 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
                         "name": deviceData["name"],
                         "icon": deviceData["icon"],
                         "isOn": false,
+                        "power": 10, // 🔥 مهم عشان الحساب
                       });
                     });
+
+                    updateGlobalData(); // 🔥 مهم
 
                     Navigator.pop(dialogContext);
                   },
@@ -254,5 +259,4 @@ class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
       },
     );
   }
-
 }

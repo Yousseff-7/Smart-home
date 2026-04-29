@@ -4,6 +4,7 @@ import 'package:untitled55/UI/pages/Profile_Page.dart';
 import '../widets/RoomCard.dart';
 import 'DynamicDevicesPage.dart';
 import 'Setting_Page.dart';
+import '../../data/app_data.dart';
 
 class RoomsPage extends StatefulWidget {
   const RoomsPage({super.key});
@@ -34,10 +35,6 @@ class _RoomsPageState extends State<RoomsPage> {
     {'title': 'Living Room', 'image': 'assets/images/living room decore.jpg'},
   ];
 
-  Map<String, List<Map<String, dynamic>>> roomDevices = {
-    "Living Room": []
-  };
-
   @override
   Widget build(BuildContext context) {
     double totalPower = 0;
@@ -45,7 +42,8 @@ class _RoomsPageState extends State<RoomsPage> {
     int roomsNumber = rooms.length;
     int devicesNumber = 0;
 
-    roomDevices.forEach((room, devices) {
+    /// 🔥 حساب البيانات من AppData
+    AppData.roomDevices.value.forEach((room, devices) {
       devicesNumber += devices.length;
       for (var d in devices) {
         if (d["isOn"] == true) {
@@ -119,53 +117,7 @@ class _RoomsPageState extends State<RoomsPage> {
 
             const SizedBox(height: 25),
 
-            /// Dashboard Card
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E1E1E),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
 
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Total Power",
-                          style: TextStyle(color: Colors.white70)),
-                      const SizedBox(height: 6),
-                      Text(
-                        "${totalPower.toStringAsFixed(1)} W",
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      const Text("Active Devices",
-                          style: TextStyle(color: Colors.white70)),
-                      const SizedBox(height: 6),
-                      Text(
-                        "$activeDevices",
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
 
             const SizedBox(height: 30),
 
@@ -180,6 +132,7 @@ class _RoomsPageState extends State<RoomsPage> {
 
             const SizedBox(height: 16),
 
+            /// 🔥 Grid Rooms
             GridView.count(
               crossAxisCount: 2,
               crossAxisSpacing: 16,
@@ -192,7 +145,8 @@ class _RoomsPageState extends State<RoomsPage> {
 
                 return RoomCard(
                   title: title,
-                  subtitle: "Devices: ${roomDevices[title]?.length ?? 0}",
+                  subtitle:
+                  "Devices: ${AppData.roomDevices.value[title]?.length ?? 0}",
                   imageUrl: room['image'],
                   onTap: () async {
                     final updatedDevices = await Navigator.push(
@@ -200,17 +154,17 @@ class _RoomsPageState extends State<RoomsPage> {
                       MaterialPageRoute(
                         builder: (_) => DynamicDevicesPage(
                           roomName: title,
-                          devices: roomDevices[title]!,
+                          devices: AppData.roomDevices.value[title]!,
                         ),
                       ),
                     );
 
                     if (updatedDevices != null) {
-                      setState(() {
-                        roomDevices[title] = updatedDevices;
-                      });
+                      AppData.roomDevices.value[title] = updatedDevices;
+
+                      /// 🔥 أهم سطر
+                      AppData.roomDevices.notifyListeners();
                     }
-                    setState(() {});
                   },
                 );
               }).toList(),
@@ -219,6 +173,7 @@ class _RoomsPageState extends State<RoomsPage> {
         ),
       ),
 
+      /// 🔥 Add Room Button
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFFF59E0B),
         child: const Icon(Icons.add, color: Colors.black),
@@ -229,7 +184,7 @@ class _RoomsPageState extends State<RoomsPage> {
     );
   }
 
-  /// 🔥 UPDATED DIALOG
+  /// 🔥 Dialog إضافة Room
   void showAddRoomDialog(BuildContext context) {
     TextEditingController controller = TextEditingController();
 
@@ -237,7 +192,7 @@ class _RoomsPageState extends State<RoomsPage> {
       context: context,
       builder: (_) {
         return AlertDialog(
-          backgroundColor: Colors.white, // 👈 مهم
+          backgroundColor: Colors.white,
 
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -258,10 +213,8 @@ class _RoomsPageState extends State<RoomsPage> {
             decoration: InputDecoration(
               hintText: "Enter room name",
               hintStyle: const TextStyle(color: Colors.black54),
-
               filled: true,
               fillColor: const Color(0xFFF1F5F9),
-
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -282,7 +235,7 @@ class _RoomsPageState extends State<RoomsPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFF59E0B),
               ),
-              onPressed: () async {
+              onPressed: () {
                 String name = controller.text.trim();
 
                 if (name.isNotEmpty) {
@@ -292,7 +245,11 @@ class _RoomsPageState extends State<RoomsPage> {
                       'image':
                       'assets/images/living room decore.jpg',
                     });
-                    roomDevices[name] = [];
+
+                    AppData.roomDevices.value[name] = [];
+
+                    /// 🔥 مهم جدًا
+                    AppData.roomDevices.notifyListeners();
                   });
                 }
 
@@ -307,5 +264,4 @@ class _RoomsPageState extends State<RoomsPage> {
         );
       },
     );
-  }
-}
+  }}
