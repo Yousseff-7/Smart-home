@@ -19,6 +19,11 @@ class LoginCubit extends Cubit<LoginStates> {
       prefs.setBool("isLogged", true);
 
 
+
+
+
+
+
       emit(LoginSuccessState());
     } catch (e) {
       emit(LoginErrorState());
