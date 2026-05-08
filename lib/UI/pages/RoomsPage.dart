@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widets/RoomCard.dart';
@@ -250,7 +249,7 @@ class _RoomsPageState extends State<RoomsPage> {
                       },
                       options: Options(
                         headers: {
-                          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWYyMTJmZDQ4ZTVmZDk4NWEzYjU4MzQiLCJpYXQiOjE3Nzc0NzgzODEsImV4cCI6MTc3ODA4MzE4MX0.Qa_JfkEJTB1khJE62nf8dz_FdIon9DdVpVmMZ0Naazk"
+                          "Authorization": "Bearer "
                         }
                       )
                     );

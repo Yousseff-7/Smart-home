@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:untitled55/Logic/SignUp/states.dart';
@@ -14,36 +13,22 @@ class SignUpCubit extends Cubit<SignUpStates> {
     emit(SignUpLoadingState());
 
     try {
-      UserCredential userCredential =
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserModel userModel = UserModel(
+        name: userName,
         email: userEmail,
         password: userPass,
       );
 
-      User? user = userCredential.user;
+      await dio.post(
+        'http://64.225.101.222:5000/api/auth/register',
+        data: userModel.toJson(),
+      );
 
-      if (user != null) {
-        String uid = user.uid;
-
-        UserModel userModel = UserModel(
-          name: userName,
-          email: userEmail,
-          password: userPass,
-        );
-
-        await dio.post(
-          'http://64.225.101.222:5000/api/auth/register',
-          data: userModel.toJson(),
-        );
-
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool("isLogged", true);
-        await prefs.setString("name", userName);
-        await prefs.setString("email", userEmail);
-        await prefs.setString("uid", uid);
-
-        emit(SignUpSuccessState());
-      }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool("isLogged", true);
+      await prefs.setString("name", userName);
+      await prefs.setString("email", userEmail);
+      emit(SignUpSuccessState());
     } catch (e) {
       emit(SignUpErrorState(em: e.toString()));
     }

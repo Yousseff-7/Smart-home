@@ -47,7 +47,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               context: context,
               builder: (context) => AlertDialog(
                 title: const Text("Error"),
-                content: const Text("Invalid email or password"),
+                content: Text(state.em),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),

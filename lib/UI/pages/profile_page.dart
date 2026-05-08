@@ -54,109 +54,105 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
 
-            /// PROFILE CARD
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E1E1E),
-                borderRadius: BorderRadius.circular(22),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E1E),
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: Column(
+                  children: [
+                    const CircleAvatar(
+                      radius: 45,
+                      backgroundImage:
+                      AssetImage("assets/images/profile.jpg"),
+                    ),
+                    const SizedBox(height: 12),
+
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    Text(
+                      email,
+                      style: const TextStyle(
+                        color: Colors.white54,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
+
+              const SizedBox(height: 25),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const CircleAvatar(
-                    radius: 45,
-                    backgroundImage:
-                    AssetImage("assets/images/profile.jpg"),
+                  StatCard(
+                    title: 'Rooms',
+                    value: widget.roomsNumber.toString(),
                   ),
-                  const SizedBox(height: 12),
-
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                  StatCard(
+                    title: 'Devices',
+                    value: widget.devicesNumber.toString(),
                   ),
-
-                  const SizedBox(height: 4),
-
-                  Text(
-                    email,
-                    style: const TextStyle(
-                      color: Colors.white54,
-                    ),
+                  const StatCard(
+                    title: 'Today',
+                    value: '2.4 kWh',
                   ),
                 ],
               ),
-            ),
 
-            const SizedBox(height: 25),
+              const SizedBox(height: 25),
 
-            /// STATS
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                StatCard(
-                  title: 'Rooms',
-                  value: widget.roomsNumber.toString(),
+              _menuCard(Icons.edit, "Edit Profile"),
+
+              const SizedBox(height: 12),
+
+              _menuCard(Icons.history, "Usage History"),
+
+              const SizedBox(height: 20),
+
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  minimumSize: const Size(double.infinity, 55),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-                StatCard(
-                  title: 'Devices',
-                  value: widget.devicesNumber.toString(),
+                icon: const Icon(Icons.logout, color: Colors.black),
+                label: const Text(
+                  "Logout",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                const StatCard(
-                  title: 'Today',
-                  value: '2.4 kWh',
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 25),
-
-            /// EDIT PROFILE
-            _menuCard(Icons.edit, "Edit Profile"),
-
-            const SizedBox(height: 12),
-
-            /// USAGE HISTORY
-            _menuCard(Icons.history, "Usage History"),
-
-            const Spacer(),
-
-            /// LOGOUT BUTTON
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
-                minimumSize: const Size(double.infinity, 55),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
+                onPressed: () {
+                  _showLogoutDialog();
+                },
               ),
-              icon: const Icon(Icons.logout, color: Colors.black),
-              label: const Text(
-                "Logout",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              onPressed: () {
-                _showLogoutDialog();
-              },
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  /// ================= MENU CARD =================
   Widget _menuCard(IconData icon, String title) {
     return Container(
       decoration: BoxDecoration(
@@ -176,7 +172,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  /// ================= LOGOUT DIALOG =================
   void _showLogoutDialog() {
     showDialog(
       context: context,
