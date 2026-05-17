@@ -16,8 +16,6 @@ class RoomsPage extends StatefulWidget {
 class _RoomsPageState extends State<RoomsPage> {
   String username = "";
 
-
-
   @override
   void initState() {
     super.initState();
@@ -63,10 +61,7 @@ class _RoomsPageState extends State<RoomsPage> {
         elevation: 0,
         title: const Text(
           "Smart Home",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         actions: [
           // IconButton(
@@ -100,7 +95,6 @@ class _RoomsPageState extends State<RoomsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             const Text(
               "Welcome back 👋",
               style: TextStyle(color: Colors.white70),
@@ -118,8 +112,6 @@ class _RoomsPageState extends State<RoomsPage> {
             ),
 
             const SizedBox(height: 25),
-
-
 
             const SizedBox(height: 30),
 
@@ -148,7 +140,7 @@ class _RoomsPageState extends State<RoomsPage> {
                 return RoomCard(
                   title: title,
                   subtitle:
-                  "Devices: ${AppData.roomDevices.value[title]?.length ?? 0}",
+                      "Devices: ${AppData.roomDevices.value[title]?.length ?? 0}",
                   imageUrl: room['image'],
                   onTap: () async {
                     final updatedDevices = await Navigator.push(
@@ -202,10 +194,7 @@ class _RoomsPageState extends State<RoomsPage> {
 
           title: const Text(
             "Add New Room",
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
           ),
 
           content: TextField(
@@ -239,41 +228,30 @@ class _RoomsPageState extends State<RoomsPage> {
               ),
               onPressed: () async {
                 String name = controller.text.trim();
+                final prefs = await SharedPreferences.getInstance();
+                String? token = prefs.getString("token");
                 if (name.isNotEmpty) {
+                  await Dio().post(
+                    "http://64.225.101.222:5000/api/rooms",
+                    data: {"name": name},
+                    options: Options(headers: {"Authorization": "Bearer $token"}),
+                  );
 
+                  setState(() {
+                    rooms.add({
+                      'title': name,
+                      'image': 'assets/images/living room decore.jpg',
+                    });
+                  });
 
-                    await Dio().post(
-                      "http://64.225.101.222:5000/api/rooms",
-                      data: {
-                        "name": name
-                      },
-                      options: Options(
-                        headers: {
-                          "Authorization": "Bearer "
-                        }
-                      )
-                    );
-
-
-                      setState(() {
-                        rooms.add({
-                          'title': name,
-                          'image': 'assets/images/living room decore.jpg',
-                        });
-                      });
-
-                      Navigator.pop(context);
-
-
+                  Navigator.pop(context);
                 }
               },
-              child: const Text(
-                "Add",
-                style: TextStyle(color: Colors.black),
-              ),
+              child: const Text("Add", style: TextStyle(color: Colors.black)),
             ),
           ],
         );
       },
     );
-  }}
+  }
+}

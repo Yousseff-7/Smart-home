@@ -19,16 +19,22 @@ class SignUpCubit extends Cubit<SignUpStates> {
         password: userPass,
       );
 
-      await dio.post(
+      Response response = await dio.post(
         'http://64.225.101.222:5000/api/auth/register',
         data: userModel.toJson(),
       );
 
+      String token = response.data["token"];
+
       final prefs = await SharedPreferences.getInstance();
+
       await prefs.setBool("isLogged", true);
       await prefs.setString("name", userName);
       await prefs.setString("email", userEmail);
+      await prefs.setString("token", token);
+
       emit(SignUpSuccessState());
+
     } catch (e) {
       emit(SignUpErrorState(em: e.toString()));
     }
