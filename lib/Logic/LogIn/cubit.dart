@@ -29,11 +29,37 @@ class LoginCubit extends Cubit<LoginStates> {
 
       await prefs.setBool("isLogged", true);
       await prefs.setString("token", token);
+      await prefs.setString(
+        "name",
+        response.data["user"]["name"],
+      );
+
+      await prefs.setString(
+        "email",
+        response.data["user"]["email"],
+      );
+      print("TOKEN = $token");
 
       emit(LoginSuccessState());
 
-    } catch (e) {
-      emit(LoginErrorState());
+    }catch (e) {
+
+      if(e is DioException){
+
+        emit(
+
+          LoginErrorState(
+
+            error:
+            e.response?.data.toString()
+                ?? "Login Failed",
+
+          ),
+
+        );
+
+      }
+
     }
   }
 }

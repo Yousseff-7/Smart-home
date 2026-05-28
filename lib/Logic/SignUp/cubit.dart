@@ -35,8 +35,20 @@ class SignUpCubit extends Cubit<SignUpStates> {
 
       emit(SignUpSuccessState());
 
-    } catch (e) {
-      emit(SignUpErrorState(em: e.toString()));
+    }catch (e) {
+      if (e is DioException) {
+        print("STATUS CODE: ${e.response?.statusCode}");
+        print("RESPONSE DATA: ${e.response?.data}");
+        print("REQUEST DATA: ${e.requestOptions.data}");
+
+        emit(
+          SignUpErrorState(
+            em: e.response?.data.toString() ?? e.message.toString(),
+          ),
+        );
+      } else {
+        emit(SignUpErrorState(em: e.toString()));
+      }
     }
   }
 }

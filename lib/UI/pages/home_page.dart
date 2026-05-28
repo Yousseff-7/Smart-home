@@ -1,207 +1,673 @@
 import 'package:flutter/material.dart';
-import '../../data/app_data.dart';
 
-class HomePage extends StatelessWidget {
+import '../../models/device_model.dart';
+import '../../models/room_model.dart';
+import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/device_service.dart';
+import '../../services/room_service.dart';
+
+class HomePage extends StatefulWidget {
+
   const HomePage({super.key});
 
   @override
+  State<HomePage> createState() =>
+      _HomePageState();
+
+}
+
+class _HomePageState
+    extends State<HomePage> {
+
+  final RoomService roomService =
+  RoomService();
+
+  final DeviceService deviceService =
+  DeviceService();
+
+  bool isLoading = true;
+
+  int roomsCount = 0;
+  int devicesCount = 0;
+
+  double totalPower = 0;
+
+  List<DeviceModel> allDevices = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadData();
+  }
+
+  Future loadData() async {
+
+    try {
+
+      List<RoomModel> rooms =
+      await roomService.getRooms();
+
+      roomsCount = rooms.length;
+
+      allDevices.clear();
+
+      for(var room in rooms){
+
+        List<DeviceModel> devices =
+        await deviceService.getDevices(
+          room.id!,
+        );
+
+        allDevices.addAll(devices);
+
+      }
+
+      devicesCount =
+          allDevices.length;
+
+      totalPower =
+          allDevices
+              .where(
+                (e)=>e.state=="on",
+          )
+              .length * 10;
+
+    } catch(e){
+
+      print(e);
+
+    }
+
+    setState(() {
+
+      isLoading = false;
+
+    });
+
+  }
+  Future<void> turnAllOff() async {
+
+    try {
+
+      final prefs =
+      await SharedPreferences.getInstance();
+
+      String token =
+          prefs.getString("token") ?? "";
+
+      final dio = Dio();
+
+      /// ================= GET ROOMS =================
+
+      Response roomsResponse =
+      await dio.get(
+
+        "http://64.225.101.222:5000/api/rooms",
+
+        options: Options(
+
+          headers: {
+
+            "Authorization":
+            "bearer $token",
+
+          },
+
+        ),
+
+      );
+
+      List rooms =
+          roomsResponse.data;
+
+      /// ================= LOOP ROOMS =================
+
+      for(var room in rooms){
+
+        String roomId =
+        room["_id"];
+
+        /// ================= GET DEVICES =================
+
+        Response devicesResponse =
+        await dio.get(
+
+          "http://64.225.101.222:5000/api/devices/$roomId",
+
+          options: Options(
+
+            headers: {
+
+              "Authorization":
+              "bearer $token",
+
+            },
+
+          ),
+
+        );
+
+        List devices =
+            devicesResponse.data;
+
+        /// ================= TURN OFF =================
+
+        for(var device in devices){
+
+          String deviceId =
+          device["_id"];
+
+          await dio.put(
+
+            "http://64.225.101.222:5000/api/devices/$deviceId/state",
+
+            data: {
+
+              "state": "off",
+
+            },
+
+            options: Options(
+
+              headers: {
+
+                "Authorization":
+                "bearer $token",
+
+              },
+
+            ),
+
+          );
+
+        }
+
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+
+        SnackBar(
+
+          behavior: SnackBarBehavior.floating,
+
+          backgroundColor:
+          const Color(0xFF1E1E1E),
+
+          elevation: 10,
+
+          margin: const EdgeInsets.all(20),
+
+          shape: RoundedRectangleBorder(
+
+            borderRadius:
+            BorderRadius.circular(16),
+
+          ),
+
+          content: Row(
+
+            children: [
+
+              const Icon(
+
+                Icons.power_off,
+
+                color: Colors.red,
+
+              ),
+
+              const SizedBox(width: 12),
+
+              const Expanded(
+
+                child: Text(
+
+                  "All devices turned off successfully",
+
+                  style: TextStyle(
+
+                    color: Colors.white,
+
+                    fontWeight:
+                    FontWeight.w600,
+
+                  ),
+
+                ),
+
+              ),
+
+            ],
+
+          ),
+
+          duration:
+          const Duration(seconds: 2),
+
+        ),
+
+      );
+    } catch(e){
+
+      print(e);
+
+    }
+
+  }
+
+
+
+
+  @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
 
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
+      backgroundColor:
+      const Color(0xFF0F0F0F),
 
-          child: ValueListenableBuilder(
-            valueListenable: AppData.roomDevices,
+      body:
 
-            builder: (context, rooms, _) {
+      isLoading
 
-              double totalPower = 0;
-              int activeDevices = 0;
-              int roomsCount = rooms.length;
+          ? const Center(
+        child:
+        CircularProgressIndicator(),
+      )
 
-              /// 🔥 حساب البيانات
-              rooms.forEach((room, devices) {
-                for (var d in devices) {
-                  if (d["isOn"] == true) {
-                    totalPower += (d["power"] ?? 0);
-                    activeDevices++;
-                  }
-                }
-              });
+          : SafeArea(
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        child: SingleChildScrollView(
+
+          padding:
+          const EdgeInsets.all(20),
+
+          child: Column(
+
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
+
+            children: [
+
+              const Text(
+
+                "Home",
+
+                style: TextStyle(
+
+                  fontSize: 26,
+
+                  fontWeight:
+                  FontWeight.bold,
+
+                  color:
+                  Colors.white,
+
+                ),
+
+              ),
+
+              const SizedBox(
+                  height: 25
+              ),
+
+              Row(
+
                 children: [
 
-                  /// 🔝 Title
-                  const Text(
-                    "Home",
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                  Expanded(
+
+                    child: _statusCard(
+
+                      title:"Power",
+
+                      value:
+                      "${totalPower.toStringAsFixed(1)} W",
+
+                      icon:
+                      Icons.bolt,
+
+                      color:
+                      Colors.orange,
+
                     ),
+
                   ),
 
-                  const SizedBox(height: 25),
-
-                  /// 🔥 3 Cards Row
-                  Row(
-                    children: [
-
-                      Expanded(
-                        child: _statusCard(
-                          title: "Power",
-                          value: "${totalPower.toStringAsFixed(1)} W",
-                          icon: Icons.bolt,
-                          color: Colors.orange,
-                        ),
-                      ),
-
-                      const SizedBox(width: 10),
-
-                      Expanded(
-                        child: _statusCard(
-                          title: "Devices",
-                          value: "$activeDevices",
-                          icon: Icons.devices,
-                          color: Colors.blue,
-                        ),
-                      ),
-
-                      const SizedBox(width: 10),
-
-                      Expanded(
-                        child: _statusCard(
-                          title: "Rooms",
-                          value: "$roomsCount",
-                          icon: Icons.home,
-                          color: Colors.green,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(
+                      width:10
                   ),
 
-                  const SizedBox(height: 30),
+                  Expanded(
 
-                  /// 🔥 Quick Actions (اختياري بس شكلها جامد)
-                  const Text(
-                    "Quick Actions",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                    child:_statusCard(
+
+                      title:"Devices",
+
+                      value:
+                      "$devicesCount",
+
+                      icon:
+                      Icons.devices,
+
+                      color:
+                      Colors.blue,
+
                     ),
+
                   ),
 
-                  const SizedBox(height: 15),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _actionButton(
-                          "All Off",
-                          Icons.power_off,
-                          Colors.red,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _actionButton(
-                          "All On",
-                          Icons.power,
-                          Colors.green,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                    ],
+                  const SizedBox(
+                      width:10
                   ),
+
+                  Expanded(
+
+                    child:_statusCard(
+
+                      title:"Rooms",
+
+                      value:
+                      "$roomsCount",
+
+                      icon:
+                      Icons.home,
+
+                      color:
+                      Colors.green,
+
+                    ),
+
+                  ),
+
                 ],
-              );
-            },
+
+              ),
+
+              const SizedBox(
+                  height:30
+              ),
+
+              const Text(
+
+                "Quick Actions",
+
+                style: TextStyle(
+
+                  color:
+                  Colors.white,
+
+                  fontSize:18,
+
+                  fontWeight:
+                  FontWeight.bold,
+
+                ),
+
+              ),
+
+              const SizedBox(
+                  height:15
+              ),
+
+              Row(
+                children: [
+
+                  Expanded(
+                    child: GestureDetector(
+
+                      onTap: () async {
+
+                        await turnAllOff();
+
+                      },
+
+                      child: Container(
+
+                        height: 90,
+
+                        decoration: BoxDecoration(
+
+                          color: Colors.red.withOpacity(0.3),
+
+                          borderRadius: BorderRadius.circular(20),
+
+                        ),
+
+                        child: const Column(
+
+                          mainAxisAlignment:
+                          MainAxisAlignment.center,
+
+                          children: [
+
+                            Icon(
+                              Icons.power_off,
+                              color: Colors.red,
+                            ),
+
+                            SizedBox(height: 10),
+
+                            Text(
+                              "All Off",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              ),
+                            ),
+
+                          ],
+
+                        ),
+
+                      ),
+
+                    ),
+                  ),
+
+                ],
+              )
+
+
+
+            ],
+
           ),
+
         ),
+
       ),
+
     );
+
   }
 
-  /// 🔹 Status Card
   Widget _statusCard({
+
     required String title,
+
     required String value,
+
     required IconData icon,
+
     required Color color,
+
   }) {
+
     return Container(
-      padding: const EdgeInsets.all(14),
+
+      padding:
+      const EdgeInsets.all(14),
+
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
-        borderRadius: BorderRadius.circular(18),
+
+        color:
+        const Color(0xFF1E1E1E),
+
+        borderRadius:
+        BorderRadius.circular(18),
+
       ),
 
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
 
-          /// Icon
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
+
+        children:[
+
           Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(10),
+
+            padding:
+            const EdgeInsets.all(8),
+
+            decoration:
+            BoxDecoration(
+
+              color:
+              color.withOpacity(0.2),
+
+              borderRadius:
+              BorderRadius.circular(10),
+
             ),
-            child: Icon(icon, color: color, size: 18),
+
+            child:
+
+            Icon(
+
+              icon,
+
+              color:color,
+
+              size:18,
+
+            ),
+
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(
+              height:12
+          ),
 
-          /// Value
           Text(
+
             value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+
+            style:
+            const TextStyle(
+
+              fontSize:18,
+
+              fontWeight:
+              FontWeight.bold,
+
+              color:
+              Colors.white,
+
             ),
+
           ),
 
-          const SizedBox(height: 4),
+          const SizedBox(
+              height:4
+          ),
 
-          /// Title
           Text(
+
             title,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Colors.white70,
+
+            style:
+            const TextStyle(
+
+              color:
+              Colors.white70,
+
+              fontSize:12,
+
             ),
+
           ),
+
         ],
+
       ),
+
     );
+
   }
 
-  /// 🔹 Quick Action Button
-  Widget _actionButton(String title, IconData icon, Color color) {
+  Widget _actionButton(
+
+      String title,
+
+      IconData icon,
+
+      Color color,
+
+      ){
+
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(15),
+
+      padding:
+
+      const EdgeInsets.symmetric(
+
+        vertical:14,
+
+      ),
+
+      decoration:
+
+      BoxDecoration(
+
+        color:
+
+        color.withOpacity(0.2),
+
+        borderRadius:
+
+        BorderRadius.circular(15),
+
       ),
 
       child: Column(
-        children: [
-          Icon(icon, color: color),
-          const SizedBox(height: 6),
-          Text(
-            title,
-            style: const TextStyle(color: Colors.white),
+
+        children:[
+
+          Icon(
+
+            icon,
+
+            color:color,
+
           ),
+
+          const SizedBox(
+              height:6
+          ),
+
+          Text(
+
+            title,
+
+            style:
+            const TextStyle(
+
+              color:
+              Colors.white,
+
+            ),
+
+          ),
+
         ],
+
       ),
+
     );
+
   }
+
 }

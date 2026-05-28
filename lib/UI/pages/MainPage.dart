@@ -1,76 +1,255 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'RoomsPage.dart';
 import 'Profile_Page.dart';
-import 'Setting_Page.dart';
 import 'home_page.dart';
 
 class MainPage extends StatefulWidget {
+
   const MainPage({super.key});
 
   @override
-  State<MainPage> createState() => _MainPageState();
+  State<MainPage> createState() =>
+      _MainPageState();
+
 }
 
-class _MainPageState extends State<MainPage> {
+class _MainPageState
+    extends State<MainPage> {
+
   int currentIndex = 0;
 
-  final pages = [
-    const HomePage(),      // 👈 دي صفحتك الحالية (Home)
-    const RoomsPage(),        // 👈 ممكن تعملي Rooms مختلفة بعدين
-    const Center(child: Text("Automation")),
-    const ProfilePage(roomsNumber: 0, devicesNumber: 0),
-  ];
+  int roomsCount = 0;
+  int devicesCount = 0;
+
+  bool isLoading = true;
+
+  @override
+  void initState() {
+
+    super.initState();
+
+    loadCounts();
+
+  }
+
+  Future loadCounts() async {
+
+    final prefs =
+    await SharedPreferences.getInstance();
+
+    String token =
+        prefs.getString("token") ?? "";
+
+    try {
+
+      /// ===== GET ROOMS =====
+
+      Response roomsResponse =
+      await Dio().get(
+
+        "http://64.225.101.222:5000/api/rooms",
+
+        options: Options(
+
+          headers: {
+
+            "Authorization":
+            "bearer $token",
+
+          },
+
+        ),
+
+      );
+
+      List rooms =
+          roomsResponse.data;
+
+      int totalDevices = 0;
+
+      /// ===== GET DEVICES =====
+
+      for (var room in rooms) {
+
+        Response devicesResponse =
+        await Dio().get(
+
+          "http://64.225.101.222:5000/api/devices/${room["_id"]}",
+
+          options: Options(
+
+            headers: {
+
+              "Authorization":
+              "bearer $token",
+
+            },
+
+          ),
+
+        );
+
+        List devices =
+            devicesResponse.data;
+
+        totalDevices +=
+            devices.length;
+
+      }
+
+      setState(() {
+
+        roomsCount =
+            rooms.length;
+
+        devicesCount =
+            totalDevices;
+
+        isLoading = false;
+
+      });
+
+    } catch (e) {
+
+      print(e);
+
+      setState(() {
+
+        isLoading = false;
+
+      });
+
+    }
+
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
 
-      body: pages[currentIndex],
+    final pages = [
 
-      bottomNavigationBar: Container(
-        margin: const EdgeInsets.all(12),
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E1E1E),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _item(Icons.home, "Home", 0),
-            _item(Icons.grid_view, "Rooms", 1),
-            _item(Icons.flash_on, "Automation", 2),
-            _item(Icons.person, "User", 3),
-          ],
-        ),
-      ),
-    );
-  }
+      const HomePage(),
 
-  Widget _item(IconData icon, String title, int index) {
-    final isActive = currentIndex == index;
+      const RoomsPage(),
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          currentIndex = index;
-        });
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: isActive ? Colors.orange : Colors.white54),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
-              color: isActive ? Colors.orange : Colors.white54,
-              fontSize: 12,
-            ),
+      const Center(
+
+        child: Text(
+
+          "Automation",
+
+          style: TextStyle(
+            color: Colors.white,
           ),
-        ],
+
+        ),
+
       ),
+
+      ProfilePage(
+
+        roomsNumber:
+        roomsCount,
+
+        devicesNumber:
+        devicesCount,
+
+      ),
+
+    ];
+
+    return Scaffold(
+
+      backgroundColor:
+      const Color(0xFF0F0F0F),
+
+      body: isLoading
+
+          ? const Center(
+        child:
+        CircularProgressIndicator(),
+      )
+
+          : IndexedStack(
+
+        index: currentIndex,
+
+        children: pages,
+
+      ),
+
+      bottomNavigationBar:
+      BottomNavigationBar(
+
+        currentIndex:
+        currentIndex,
+
+        onTap: (index) {
+
+          setState(() {
+
+            currentIndex =
+                index;
+
+          });
+
+        },
+
+        backgroundColor:
+        const Color(0xFF1E1E1E),
+
+        selectedItemColor:
+        Colors.orange,
+
+        unselectedItemColor:
+        Colors.grey,
+
+        type:
+        BottomNavigationBarType.fixed,
+
+        items: const [
+
+          BottomNavigationBarItem(
+
+            icon: Icon(Icons.home),
+
+            label: "Home",
+
+          ),
+
+          BottomNavigationBarItem(
+
+            icon: Icon(Icons.grid_view),
+
+            label: "Rooms",
+
+          ),
+
+          BottomNavigationBarItem(
+
+            icon: Icon(Icons.flash_on),
+
+            label: "Automation",
+
+          ),
+
+          BottomNavigationBarItem(
+
+            icon: Icon(Icons.person),
+
+            label: "User",
+
+          ),
+
+        ],
+
+      ),
+
     );
+
   }
+
 }

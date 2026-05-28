@@ -1,277 +1,364 @@
 import 'package:flutter/material.dart';
-import '../../models/alert_model.dart';
-import '../../services/alert_service.dart';
+
+import '../../models/device_model.dart';
+import '../../services/device_service.dart';
+
 import '../widets/DeviceCard.dart';
-import '../../data/app_data.dart'; // 🔥 مهم
-import 'DashboardChartsPage.dart';
 
 class DynamicDevicesPage extends StatefulWidget {
+
+  final String roomId;
   final String roomName;
-  final List<Map<String, dynamic>> devices;
 
   const DynamicDevicesPage({
+
     super.key,
+
+    required this.roomId,
     required this.roomName,
-    required this.devices,
+
   });
 
   @override
-  State<DynamicDevicesPage> createState() => _DynamicDevicesPageState();
+  State<DynamicDevicesPage> createState() =>
+      _DynamicDevicesPageState();
 }
 
-class _DynamicDevicesPageState extends State<DynamicDevicesPage> {
+class _DynamicDevicesPageState
+    extends State<DynamicDevicesPage> {
 
-  late List<Map<String, dynamic>> devices;
+  final DeviceService service =
+  DeviceService();
 
-  AlertModel? alert;
-  double temperature = 26;
-  double humidity = 35;
+  List<DeviceModel> devices = [];
+
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    devices = List.from(widget.devices);
-    loadAlert();
+    loadDevices();
   }
 
-  void loadAlert() async {
-    alert = await AlertService.fetchAlert();
-    setState(() {});
-  }
+  Future loadDevices() async {
 
-  void updateGlobalData() {
-    AppData.roomDevices.value[widget.roomName] = devices;
-    AppData.roomDevices.notifyListeners();
+    try {
+
+      devices =
+      await service.getDevices(
+        widget.roomId,
+      );
+
+    } catch (e) {
+
+      print(e);
+
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-      backgroundColor: Colors.transparent,
+
+      backgroundColor:
+      const Color(0xFF0F0F0F),
 
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+
+        backgroundColor:
+        Colors.transparent,
+
         elevation: 0,
-        title: Text(widget.roomName),
-        leading: IconButton(
-          onPressed: () {
-            updateGlobalData(); // 🔥 مهم
-            Navigator.pop(context, devices);
-          },
-          icon: const Icon(Icons.arrow_back_ios_new_outlined),
+
+        title: Text(
+          widget.roomName,
         ),
+
       ),
 
-      body: Stack(
-        children: [
+      body:
 
-          Positioned.fill(
-            child: Image.asset(
-              "assets/images/living room decore.jpg",
-              fit: BoxFit.cover,
-            ),
+      isLoading
+
+          ? const Center(
+        child:
+        CircularProgressIndicator(),
+      )
+
+          : devices.isEmpty
+
+          ? const Center(
+
+        child: Text(
+
+          "No Devices",
+
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
           ),
 
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withOpacity(0.3),
-            ),
-          ),
+        ),
 
-          SafeArea(
-            child: Column(
-              children: [
+      )
 
-                const SizedBox(height: 20),
+          : GridView.builder(
 
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _sensorItem(Icons.thermostat, "$temperature°C", "Temp"),
-                        _sensorItem(Icons.water_drop, "$humidity%", "Humidity"),
-                      ],
-                    ),
-                  ),
-                ),
+        padding:
+        const EdgeInsets.all(16),
 
-                const SizedBox(height: 20),
+        itemCount: devices.length,
 
-                /// 📦 DEVICES
-                Flexible(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: devices.length,
-                    itemBuilder: (_, i) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: DeviceCard(
+        gridDelegate:
+        const SliverGridDelegateWithFixedCrossAxisCount(
 
-                          iconPath: devices[i]["icon"],
-                          name: devices[i]["name"],
-                          isOn: devices[i]["isOn"],
+          crossAxisCount: 2,
 
-                          onToggle: (val) {
-                            setState(() {
-                              devices[i]["isOn"] = val;
-                            });
+          crossAxisSpacing: 16,
 
-                            updateGlobalData(); // 🔥 مهم
-                          },
+          mainAxisSpacing: 16,
 
-                          onDelete: () {
-                            setState(() {
-                              devices.removeAt(i);
-                            });
+          childAspectRatio: 0.9,
 
-                            updateGlobalData(); // 🔥 مهم
-                          },
-                        ),
-                      );
-                    },
-                  ),
-                )
-              ],
-            ),
-          ),
-        ],
+        ),
+
+        itemBuilder: (_, i) {
+
+          DeviceModel device =
+          devices[i];
+
+          return DeviceCard(
+
+            deviceId: device.id!,
+
+            iconPath: getDeviceImage(device.name),
+
+            name: device.name,
+
+            isOn: device.state == "on",
+
+            onToggle: (val) async {
+
+              await service.updateState(
+
+                device.id!,
+
+                val ? "on" : "off",
+
+              );
+
+              setState(() {
+
+                device.state =
+                val ? "on" : "off";
+
+              });
+
+            },
+
+            onDelete: () async {
+
+              await service.deleteDevice(
+                device.id!,
+              );
+
+              loadDevices();
+
+            },
+
+          );
+
+        },
+
       ),
 
-      floatingActionButton: Container(
-        height: 60,
-        width: 60,
-        decoration: BoxDecoration(
-          color: Colors.orange,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+      floatingActionButton:
+      FloatingActionButton(
+
+        backgroundColor:
+        Colors.orange,
+
+        child: const Icon(
+          Icons.add,
+          color: Colors.black,
         ),
-        child: IconButton(
-          icon: const Icon(Icons.add, color: Colors.black),
-          onPressed: () {
-            showAddDeviceDialog(context);
-          },
-        ),
+
+        onPressed: () {
+
+          showAddDialog();
+
+        },
+
       ),
+
     );
+
   }
 
-  Widget _sensorItem(IconData icon, String value, String label) {
-    return Column(
-      children: [
-        Icon(icon, color: Colors.white70),
-        const SizedBox(height: 6),
-        Text(value,
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold)),
-        Text(label,
-            style: const TextStyle(color: Colors.white60, fontSize: 12)),
-      ],
-    );
-  }
+  void showAddDialog() {
 
-  void showAddDeviceDialog(BuildContext context) {
-
-    String? selectedDevice;
-
-    final List<Map<String, String>> deviceOptions = [
-      {"name": "Lamp", "icon": "assets/images/lamp.png"},
-      {"name": "TV", "icon": "assets/images/tv.png"},
-      {"name": "Fan", "icon": "assets/images/fan2.png"},
-      {"name": "Air Conditioner", "icon": "assets/images/smartac.png"},
-      {"name": "Heater", "icon": "assets/images/heater.png"},
-    ];
+    TextEditingController controller =
+    TextEditingController();
 
     showDialog(
+
       context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              backgroundColor: const Color(0xFF1E293B),
 
-              title: const Text(
-                "Select Device",
-                style: TextStyle(color: Colors.white),
+      builder: (_) {
+
+        return AlertDialog(
+
+          backgroundColor:
+          const Color(0xFF1E1E1E),
+
+          title: const Text(
+
+            "Add Device",
+
+            style: TextStyle(
+              color: Colors.white,
+            ),
+
+          ),
+
+          content: TextField(
+
+            controller: controller,
+
+            style: const TextStyle(
+              color: Colors.white,
+            ),
+
+            decoration:
+            InputDecoration(
+
+              hintText:
+              "Device Name",
+
+              hintStyle:
+              const TextStyle(
+                color: Colors.white54,
               ),
 
-              content: DropdownButtonFormField<String>(
-                dropdownColor: const Color(0xFF1E293B),
-                style: const TextStyle(color: Colors.white),
+              filled: true,
 
-                hint: const Text(
-                  "Choose device",
-                  style: TextStyle(color: Colors.white70),
-                ),
+              fillColor:
+              Colors.black26,
 
-                value: selectedDevice,
+              border:
+              OutlineInputBorder(
 
-                items: deviceOptions.map((device) {
-                  return DropdownMenuItem(
-                    value: device["name"],
-                    child: Text(device["name"]!),
-                  );
-                }).toList(),
+                borderRadius:
+                BorderRadius.circular(12),
 
-                onChanged: (value) {
-                  setDialogState(() {
-                    selectedDevice = value;
-                  });
-                },
               ),
 
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text(
-                    "Cancel",
-                    style: TextStyle(color: Colors.orange),
-                  ),
-                ),
+            ),
 
-                ElevatedButton(
-                  onPressed: () {
+          ),
 
-                    if (selectedDevice == null) return;
+          actions: [
 
-                    final deviceData = deviceOptions.firstWhere(
-                          (d) => d["name"] == selectedDevice,
-                    );
+            TextButton(
 
-                    setState(() {
-                      devices.add({
-                        "name": deviceData["name"],
-                        "icon": deviceData["icon"],
-                        "isOn": false,
-                        "power": 10, // 🔥 مهم عشان الحساب
-                      });
-                    });
+              onPressed: () {
 
-                    updateGlobalData(); // 🔥 مهم
+                Navigator.pop(context);
 
-                    Navigator.pop(dialogContext);
-                  },
-                  child: const Text("Add"),
-                ),
-              ],
-            );
-          },
+              },
+
+              child: const Text(
+                "Cancel",
+              ),
+
+            ),
+
+            ElevatedButton(
+
+              onPressed: () async {
+
+                if(controller.text
+                    .trim()
+                    .isEmpty) return;
+
+                DeviceModel device =
+                DeviceModel(
+
+                  name:
+                  controller.text,
+
+                  roomId:
+                  widget.roomId,
+
+                );
+
+                await service.addDevice(
+                  device,
+                );
+
+                Navigator.pop(context);
+
+                loadDevices();
+
+              },
+
+              child:
+              const Text("Add"),
+
+            ),
+
+          ],
+
         );
+
       },
+
     );
+
   }
+
+}
+String getDeviceImage(String name) {
+
+  String device =
+  name.toLowerCase();
+
+  if(device.contains("lamp")) {
+
+    return "assets/images/lamp.png";
+
+  }
+
+  else if(device.contains("tv")) {
+
+    return "assets/images/tv.png";
+
+  }
+
+  else if(device.contains("fan")) {
+
+    return "assets/images/fan2.png";
+
+  }
+
+  else if(device.contains("heater")) {
+
+    return "assets/images/heater.png";
+
+  }
+
+  else if(device.contains("ac")) {
+
+    return "assets/images/smartac.png";
+
+  }
+
+  return "assets/images/lamp.png";
+
 }

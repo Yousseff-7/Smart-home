@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:untitled55/Logic/LogIn/cubit.dart';
 import 'package:untitled55/Logic/LogIn/states.dart';
 import 'package:untitled55/UI/widets/AuthButtons.dart';
+import 'MainPage.dart';
 import 'RoomsPage.dart';
 import 'register_page.dart';
 
@@ -31,9 +32,9 @@ class _LoginScreenState extends State<LoginScreen> {
       child: BlocConsumer<LoginCubit, LoginStates>(
         listener: (context, state) {
           if (state is LoginSuccessState) {
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const RoomsPage()),
+              MaterialPageRoute(builder: (_) => const MainPage()),
             );
           } else if (state is LoginErrorState) {
             showDialog(

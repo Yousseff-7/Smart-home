@@ -1,10 +1,9 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../widets/RoomCard.dart';
+import 'dart:typed_data';
+import 'package:image_picker/image_picker.dart';
 import 'DynamicDevicesPage.dart';
-import 'Setting_Page.dart';
-import '../../data/app_data.dart';
+import '../../models/room_model.dart';
+import '../../services/room_service.dart';
 
 class RoomsPage extends StatefulWidget {
   const RoomsPage({super.key});
@@ -14,244 +13,652 @@ class RoomsPage extends StatefulWidget {
 }
 
 class _RoomsPageState extends State<RoomsPage> {
-  String username = "";
+
+  Uint8List? selectedImage;
+
+  final RoomService roomService = RoomService();
+
+  List<RoomModel> rooms = [];
+
+  bool loading = true;
 
   @override
   void initState() {
     super.initState();
-    loadUsername();
+    getRooms();
   }
 
-  void loadUsername() async {
-    final prefs = await SharedPreferences.getInstance();
-    String savedName = prefs.getString("name") ?? '';
+  Future getRooms() async {
 
     setState(() {
-      username = savedName;
+      loading = true;
     });
+
+    try {
+
+      rooms =
+      await roomService.getRooms();
+
+    } catch (e) {
+
+      print(e);
+
+    }
+
+    setState(() {
+      loading = false;
+    });
+
   }
 
-  final List<Map<String, dynamic>> rooms = [
-    {'title': 'Living Room', 'image': 'assets/images/living room decore.jpg'},
-  ];
+  Future pickImage(
+      StateSetter setDialog
+      ) async {
 
-  @override
-  Widget build(BuildContext context) {
-    double totalPower = 0;
-    int activeDevices = 0;
-    int roomsNumber = rooms.length;
-    int devicesNumber = 0;
+    try {
 
-    /// 🔥 حساب البيانات من AppData
-    AppData.roomDevices.value.forEach((room, devices) {
-      devicesNumber += devices.length;
-      for (var d in devices) {
-        if (d["isOn"] == true) {
-          totalPower += (d["power"] ?? 0);
-          activeDevices++;
-        }
-      }
-    });
+      final picker =
+      ImagePicker();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      final XFile? image =
+      await picker.pickImage(
 
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          "Smart Home",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        actions: [
-          // IconButton(
-          //   icon: const Icon(Icons.person, color: Colors.white),
-          //   onPressed: () {
-          //     Navigator.push(
-          //       context,
-          //       MaterialPageRoute(
-          //         builder: (_) => ProfilePage(
-          //           roomsNumber: roomsNumber,
-          //           devicesNumber: devicesNumber,
-          //         ),
-          //       ),
-          //     );
-          //   },
-          // ),
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SettingsPage()),
-              );
-            },
-          ),
-        ],
-      ),
+        source:
+        ImageSource.gallery,
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Welcome back 👋",
-              style: TextStyle(color: Colors.white70),
-            ),
+        imageQuality: 50,
 
-            const SizedBox(height: 5),
+      );
 
-            Text(
-              username,
-              style: const TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+      if(image == null) return;
+
+      final bytes =
+      await image.readAsBytes();
+
+      setDialog(() {
+
+        selectedImage =
+            bytes;
+
+      });
+
+    }
+
+    catch(e){
+
+      print(
+          "IMAGE ERROR $e"
+      );
+
+    }
+
+  }
+
+  Future addRoom() async {
+
+    TextEditingController controller =
+    TextEditingController();
+
+    selectedImage = null;
+
+    await showDialog(
+
+      context: context,
+
+      builder:(dialogContext){
+
+        return StatefulBuilder(
+
+          builder:
+              (context,setDialog){
+
+            return AlertDialog(
+
+              backgroundColor:
+              const Color(
+                0xFF1E1E1E,
               ),
-            ),
 
-            const SizedBox(height: 25),
+              title:
+              const Text(
 
-            const SizedBox(height: 30),
+                "Add Room",
 
-            const Text(
-              "Your Rooms",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+                style:
+                TextStyle(
+                  color:
+                  Colors.white,
+                ),
+
               ),
-            ),
 
-            const SizedBox(height: 16),
+              content:
 
-            /// 🔥 Grid Rooms
-            GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 1.2,
-              children: rooms.map((room) {
-                String title = room['title'];
+              Column(
 
-                return RoomCard(
-                  title: title,
-                  subtitle:
-                      "Devices: ${AppData.roomDevices.value[title]?.length ?? 0}",
-                  imageUrl: room['image'],
-                  onTap: () async {
-                    final updatedDevices = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => DynamicDevicesPage(
-                          roomName: title,
-                          devices: AppData.roomDevices.value[title]!,
+                mainAxisSize:
+                MainAxisSize.min,
+
+                children:[
+
+                  GestureDetector(
+
+                    onTap:(){
+
+                      pickImage(
+                        setDialog,
+                      );
+
+                    },
+
+                    child:
+
+                    Container(
+
+                      width:140,
+
+                      height:140,
+
+                      decoration:
+                      BoxDecoration(
+
+                        color:
+                        const Color(
+                          0xFF2A2A2A,
                         ),
+
+                        borderRadius:
+                        BorderRadius.circular(
+                          20,
+                        ),
+
+                        border:
+                        Border.all(
+
+                          color:
+                          Colors.orange,
+
+                          width:2,
+
+                        ),
+
                       ),
+
+                      child:
+
+                      selectedImage==null
+
+                          ?
+
+                      const Column(
+
+                        mainAxisAlignment:
+                        MainAxisAlignment.center,
+
+                        children:[
+
+                          Icon(
+
+                            Icons.add_a_photo,
+
+                            color:
+                            Colors.orange,
+
+                            size:40,
+
+                          ),
+
+                          SizedBox(
+                            height:10,
+                          ),
+
+                          Text(
+
+                            "Choose Image",
+
+                            style:
+                            TextStyle(
+
+                              color:
+                              Colors.white70,
+
+                            ),
+
+                          ),
+
+                        ],
+
+                      )
+
+                          :
+
+                      ClipRRect(
+
+                        borderRadius:
+                        BorderRadius.circular(
+                          20,
+                        ),
+
+                        child:
+
+                        Image.memory(
+
+                          selectedImage!,
+
+                          fit:
+                          BoxFit.cover,
+
+                        ),
+
+                      ),
+
+                    ),
+
+                  ),
+
+                  const SizedBox(
+                    height:20,
+                  ),
+
+                  TextField(
+
+                    controller:
+                    controller,
+
+                    style:
+                    const TextStyle(
+
+                      color:
+                      Colors.white,
+
+                    ),
+
+                    decoration:
+                    const InputDecoration(
+
+                      hintText:
+                      "Room Name",
+
+                    ),
+
+                  ),
+
+                ],
+
+              ),
+
+              actions:[
+
+                TextButton(
+
+                  onPressed:(){
+
+                    Navigator.pop(
+                      dialogContext,
                     );
 
-                    if (updatedDevices != null) {
-                      AppData.roomDevices.value[title] = updatedDevices;
-
-                      /// 🔥 أهم سطر
-                      AppData.roomDevices.notifyListeners();
-                    }
                   },
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      ),
 
-      /// 🔥 Add Room Button
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFFF59E0B),
-        child: const Icon(Icons.add, color: Colors.black),
-        onPressed: () {
-          showAddRoomDialog(context);
-        },
-      ),
-    );
-  }
+                  child:
+                  const Text(
+                    "Cancel",
+                  ),
 
-  /// 🔥 Dialog إضافة Room
-  void showAddRoomDialog(BuildContext context) {
-    TextEditingController controller = TextEditingController();
+                ),
 
-    showDialog(
-      context: context,
-      builder: (_) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
+                ElevatedButton(
 
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
+                  onPressed:() async {
 
-          title: const Text(
-            "Add New Room",
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-          ),
+                    if(
+                    controller.text
+                        .trim()
+                        .isEmpty
+                    ){
 
-          content: TextField(
-            controller: controller,
-            style: const TextStyle(color: Colors.black),
+                      return;
 
-            decoration: InputDecoration(
-              hintText: "Enter room name",
-              hintStyle: const TextStyle(color: Colors.black54),
-              filled: true,
-              fillColor: const Color(0xFFF1F5F9),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
+                    }
 
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                "Cancel",
-                style: TextStyle(color: Colors.orange),
-              ),
-            ),
+                    try{
 
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF59E0B),
-              ),
-              onPressed: () async {
-                String name = controller.text.trim();
-                final prefs = await SharedPreferences.getInstance();
-                String? token = prefs.getString("token");
-                if (name.isNotEmpty) {
-                  await Dio().post(
-                    "http://64.225.101.222:5000/api/rooms",
-                    data: {"name": name},
-                    options: Options(headers: {"Authorization": "Bearer $token"}),
-                  );
+                      await roomService.addRoom(
 
-                  setState(() {
-                    rooms.add({
-                      'title': name,
-                      'image': 'assets/images/living room decore.jpg',
-                    });
-                  });
+                        RoomModel(
 
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text("Add", style: TextStyle(color: Colors.black)),
-            ),
-          ],
+                          name:
+                          controller.text.trim(),
+
+                        ),
+
+                        selectedImage,
+
+                      );
+
+                      Navigator.pop(
+                        dialogContext,
+                      );
+
+                      await getRooms();
+
+                    }
+
+                    catch(e){
+
+                      print(
+                          "ADD ROOM ERROR $e"
+                      );
+
+                    }
+
+                  },
+
+                  child:
+                  const Text(
+                    "Add",
+                  ),
+
+                ),
+
+              ],
+
+            );
+
+          },
+
         );
+
       },
+
     );
+
   }
+
+  Future deleteRoom(
+      String id
+      ) async {
+
+    await roomService
+        .deleteRoom(id);
+
+    getRooms();
+
+  }
+
+  @override
+  Widget build(
+      BuildContext context
+      ) {
+
+    return Scaffold(
+
+      backgroundColor:
+      const Color(
+        0xFF0F0F0F,
+      ),
+
+      floatingActionButton:
+
+      FloatingActionButton(
+
+        backgroundColor:
+        Colors.orange,
+
+        onPressed:
+        addRoom,
+
+        child:
+        const Icon(
+          Icons.add,
+        ),
+
+      ),
+
+      body:
+
+      SafeArea(
+
+        child:
+
+        Padding(
+
+          padding:
+          const EdgeInsets.all(
+            20,
+          ),
+
+          child:
+
+          Column(
+
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
+
+            children:[
+
+              const Text(
+
+                "Your Rooms",
+
+                style:
+                TextStyle(
+
+                  color:
+                  Colors.white,
+
+                  fontSize:28,
+
+                  fontWeight:
+                  FontWeight.bold,
+
+                ),
+
+              ),
+
+              const SizedBox(
+                height:20,
+              ),
+
+              if(loading)
+
+                const Expanded(
+
+                  child:
+
+                  Center(
+
+                    child:
+                    CircularProgressIndicator(),
+
+                  ),
+
+                )
+
+              else
+
+                Expanded(
+
+                  child:
+
+                  GridView.builder(
+
+                    itemCount:
+                    rooms.length,
+
+                    gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+
+                      crossAxisCount:2,
+
+                      crossAxisSpacing:15,
+
+                      mainAxisSpacing:15,
+
+                      childAspectRatio:.9,
+
+                    ),
+
+                    itemBuilder:(context,index){
+
+                      RoomModel room = rooms[index];
+
+                      return GestureDetector(
+
+                        onTap: () async {
+
+                          await Navigator.push(
+
+                            context,
+
+                            MaterialPageRoute(
+
+                              builder: (_) => DynamicDevicesPage(
+
+                                roomName: room.name,
+
+                                roomId: room.id!,
+
+                              ),
+
+                            ),
+
+                          );
+
+                        },
+
+                        child: Container(
+
+                          decoration: BoxDecoration(
+
+                            borderRadius:
+                            BorderRadius.circular(20),
+
+                            image: DecorationImage(
+
+                              image: AssetImage(
+
+                                room.name.toLowerCase().contains("kitchen")
+
+                                    ? "assets/images/Kitchen Room.jpg"
+
+                                    : room.name.toLowerCase().contains("bath")
+
+                                    ? "assets/images/Bath Room.jpg"
+
+                                    : room.name.toLowerCase().contains("bed")
+
+                                    ? "assets/images/Bed Room.jpg"
+
+                                    : room.name.toLowerCase().contains("kids")
+
+                                    ? "assets/images/kids.jpg"
+
+                                    : "assets/images/living room decore.jpg",
+
+                              ),
+
+                              fit: BoxFit.cover,
+
+                            ),
+
+                          ),
+
+                          child: Container(
+
+                            decoration: BoxDecoration(
+
+                              borderRadius:
+                              BorderRadius.circular(20),
+
+                              gradient: LinearGradient(
+
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+
+                                colors: [
+
+                                  Colors.black.withOpacity(.2),
+                                  Colors.black.withOpacity(.8),
+
+                                ],
+
+                              ),
+
+                            ),
+
+                            child: Stack(
+
+                              children:[
+
+                                Center(
+
+                                  child: Text(
+
+                                    room.name,
+
+                                    style: const TextStyle(
+
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+
+                                    ),
+
+                                  ),
+
+                                ),
+
+                                Positioned(
+
+                                  top: 5,
+                                  right: 5,
+
+                                  child: IconButton(
+
+                                    onPressed: () {
+
+                                      deleteRoom(room.id!);
+
+                                    },
+
+                                    icon: const Icon(
+
+                                      Icons.delete,
+                                      color: Colors.red,
+
+                                    ),
+
+                                  ),
+
+                                ),
+
+                              ],
+
+                            ),
+
+                          ),
+
+                        ),
+
+                      );
+
+                    },
+
+
+                  ),
+
+                ),
+
+            ],
+
+          ),
+
+        ),
+
+      ),
+
+    );
+
+  }
+
 }
