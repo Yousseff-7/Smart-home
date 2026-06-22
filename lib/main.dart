@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'providers/theme_provider.dart';
 import 'theme.dart';
 import 'UI/pages/MainPage.dart';
 import 'UI/pages/login_page.dart';
@@ -16,7 +18,17 @@ void main() async {
       prefs.getBool("isLogged") ?? false;
 
   runApp(
-    MyApp(check: login),
+
+    ChangeNotifierProvider(
+
+      create: (_) => ThemeProvider(),
+
+      child: MyApp(
+        check: login,
+      ),
+
+    ),
+
   );
 }
 
@@ -32,19 +44,35 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    return MaterialApp(
+    return Consumer<ThemeProvider>(
 
-      debugShowCheckedModeBanner: false,
+      builder: (
+          context,
+          themeProvider,
+          child,
+          ) {
 
-      theme: AppTheme.darkTheme,
+        return MaterialApp(
 
-      home:
+          debugShowCheckedModeBanner:
+          false,
 
-      check
+          theme: AppTheme.lightTheme,
 
-          ? const MainPage()
+          darkTheme: AppTheme.darkTheme,
 
-          : const LoginScreen(),
+          themeMode: themeProvider.themeMode,
+          home:
+
+          check
+
+              ? const MainPage()
+
+              : const LoginScreen(),
+
+        );
+
+      },
 
     );
 

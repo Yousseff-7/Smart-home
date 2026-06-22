@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
-
+import 'package:provider/provider.dart';
+import '../../providers/theme_provider.dart';
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
@@ -10,7 +11,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool notifications = true;
-  bool darkMode = true;
+
 
   final Color primaryColor = const Color(0xFFF59E0B);
 
@@ -76,9 +77,50 @@ class _SettingsPageState extends State<SettingsPage> {
               setState(() => notifications = val);
             }),
             _divider(),
-            _switchTile("Dark Mode", darkMode, (val) {
-              setState(() => darkMode = val);
-            }),
+            Consumer<ThemeProvider>(
+              builder: (
+                  context,
+                  themeProvider,
+                  child,
+                  ) {
+
+                return SwitchListTile(
+
+                  value:
+                  themeProvider.isDark,
+
+                  onChanged: (val) {
+
+                    themeProvider
+                        .toggleTheme();
+
+                  },
+
+                  activeColor:
+                  Colors.black,
+
+                  activeTrackColor:
+                  primaryColor,
+
+                  title: const Text(
+                    "Dark Mode",
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+
+                  secondary: Icon(
+
+                    themeProvider.isDark
+                        ? Icons.dark_mode
+                        : Icons.light_mode,
+
+                    color: Colors.white,
+
+                  ),
+                );
+              },
+            ),
           ]),
 
           const SizedBox(height: 25),

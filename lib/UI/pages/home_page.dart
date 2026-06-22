@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-
 import '../../models/device_model.dart';
 import '../../models/room_model.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../models/weather_model.dart';
 import '../../services/device_service.dart';
 import '../../services/room_service.dart';
+import '../../services/weather_service.dart';
+import '../widets/weather_card.dart';
 
 class HomePage extends StatefulWidget {
 
@@ -25,6 +27,10 @@ class _HomePageState
 
   final DeviceService deviceService =
   DeviceService();
+  final WeatherService weatherService =
+  WeatherService();
+
+  WeatherModel? weather;
 
   bool isLoading = true;
 
@@ -32,13 +38,15 @@ class _HomePageState
   int devicesCount = 0;
 
   double totalPower = 0;
-
   List<DeviceModel> allDevices = [];
 
   @override
   void initState() {
     super.initState();
     loadData();
+    loadWeather();
+
+
   }
 
   Future loadData() async {
@@ -72,7 +80,8 @@ class _HomePageState
                 (e)=>e.state=="on",
           )
               .length * 10;
-
+      weather =
+      await weatherService.getWeather();
     } catch(e){
 
       print(e);
@@ -85,6 +94,27 @@ class _HomePageState
 
     });
 
+  }
+  Future<void> loadWeather() async {
+
+    try {
+
+      WeatherModel result =
+      await weatherService.getWeather();
+
+      print("CITY = ${result.city}");
+      print("TEMP = ${result.temperature}");
+
+      setState(() {
+        weather = result;
+      });
+
+    } catch (e) {
+
+      print("WEATHER ERROR");
+      print(e);
+
+    }
   }
   Future<void> turnAllOff() async {
 
@@ -192,7 +222,7 @@ class _HomePageState
           behavior: SnackBarBehavior.floating,
 
           backgroundColor:
-          const Color(0xFF1E1E1E),
+          Theme.of(context).cardColor,
 
           elevation: 10,
 
@@ -265,7 +295,7 @@ class _HomePageState
     return Scaffold(
 
       backgroundColor:
-      const Color(0xFF0F0F0F),
+      Theme.of(context).scaffoldBackgroundColor,
 
       body:
 
@@ -290,7 +320,7 @@ class _HomePageState
 
             children: [
 
-              const Text(
+              Text(
 
                 "Home",
 
@@ -302,7 +332,7 @@ class _HomePageState
                   FontWeight.bold,
 
                   color:
-                  Colors.white,
+                  Theme.of(context).textTheme.titleLarge?.color,
 
                 ),
 
@@ -311,92 +341,104 @@ class _HomePageState
               const SizedBox(
                   height: 25
               ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
 
-              Row(
+                   Text(
+                    "Welcome Marwa 👋",
+                    style: TextStyle(
+                      color:Theme.of(context).textTheme.titleLarge?.color,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 5),
+
+                  Text(
+                    "Manage your smart home easily",
+                    style: TextStyle(
+                      color:Theme.of(context).textTheme.bodyMedium?.color,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                "Today's Weather",
+                style: TextStyle(
+                  color:Theme.of(context).textTheme.titleLarge?.color,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+              weather == null
+                  ? Text(
+                "Loading Weather...",
+                style: TextStyle(
+                  color:Theme.of(context).textTheme.titleLarge?.color,
+                ),
+              )
+                  : WeatherCard(
+                weather: weather!,
+              ),
+
+              const SizedBox(height: 25),
+              const SizedBox(height: 25),
+
+              GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+
+                crossAxisCount: 2,
+
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+
+                childAspectRatio: 1.4,
 
                 children: [
 
-                  Expanded(
-
-                    child: _statusCard(
-
-                      title:"Power",
-
-                      value:
-                      "${totalPower.toStringAsFixed(1)} W",
-
-                      icon:
-                      Icons.bolt,
-
-                      color:
-                      Colors.orange,
-
-                    ),
-
+                  _statusCard(
+                    title: "Power",
+                    value: "${totalPower.toStringAsFixed(1)} W",
+                    icon: Icons.bolt,
+                    color: Colors.orange,
                   ),
 
-                  const SizedBox(
-                      width:10
+                  _statusCard(
+                    title: "Devices",
+                    value: "$devicesCount",
+                    icon: Icons.devices,
+                    color: Colors.blue,
                   ),
 
-                  Expanded(
-
-                    child:_statusCard(
-
-                      title:"Devices",
-
-                      value:
-                      "$devicesCount",
-
-                      icon:
-                      Icons.devices,
-
-                      color:
-                      Colors.blue,
-
-                    ),
-
+                  _statusCard(
+                    title: "Rooms",
+                    value: "$roomsCount",
+                    icon: Icons.home,
+                    color: Colors.green,
                   ),
-
-                  const SizedBox(
-                      width:10
-                  ),
-
-                  Expanded(
-
-                    child:_statusCard(
-
-                      title:"Rooms",
-
-                      value:
-                      "$roomsCount",
-
-                      icon:
-                      Icons.home,
-
-                      color:
-                      Colors.green,
-
-                    ),
-
-                  ),
+                  
 
                 ],
-
               ),
-
               const SizedBox(
                   height:30
               ),
 
-              const Text(
+              Text(
 
                 "Quick Actions",
 
                 style: TextStyle(
 
                   color:
-                  Colors.white,
+                  Theme.of(context).textTheme.titleLarge?.color,
 
                   fontSize:18,
 
@@ -435,24 +477,24 @@ class _HomePageState
 
                         ),
 
-                        child: const Column(
+                        child: Column(
 
                           mainAxisAlignment:
                           MainAxisAlignment.center,
 
                           children: [
 
-                            Icon(
+                            const Icon(
                               Icons.power_off,
                               color: Colors.red,
                             ),
 
-                            SizedBox(height: 10),
+                            const SizedBox(height: 10),
 
                             Text(
                               "All Off",
                               style: TextStyle(
-                                color: Colors.white,
+                                color: Theme.of(context).textTheme.titleLarge?.color,
                                 fontSize: 18,
                               ),
                             ),
@@ -556,7 +598,7 @@ class _HomePageState
             value,
 
             style:
-            const TextStyle(
+            TextStyle(
 
               fontSize:18,
 
@@ -564,7 +606,7 @@ class _HomePageState
               FontWeight.bold,
 
               color:
-              Colors.white,
+              Theme.of(context).textTheme.titleLarge?.color,
 
             ),
 
@@ -579,10 +621,10 @@ class _HomePageState
             title,
 
             style:
-            const TextStyle(
+            TextStyle(
 
               color:
-              Colors.white70,
+              Theme.of(context).textTheme.titleLarge?.color,
 
               fontSize:12,
 
@@ -653,10 +695,10 @@ class _HomePageState
             title,
 
             style:
-            const TextStyle(
+            TextStyle(
 
               color:
-              Colors.white,
+              Theme.of(context).textTheme.titleLarge?.color,
 
             ),
 

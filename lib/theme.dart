@@ -65,4 +65,63 @@ class AppTheme {
       ),
     ),
   );
+  static ThemeData lightTheme = ThemeData(
+    brightness: Brightness.light,
+
+    scaffoldBackgroundColor: Colors.white,
+
+    primaryColor: const Color(0xFFF59E0B),
+
+    colorScheme: ColorScheme.light(
+      primary: const Color(0xFFF59E0B),
+      secondary: const Color(0xFFFBBF24),
+      surface: Colors.white,
+      onPrimary: Colors.black,
+      onSurface: Colors.black,
+    ),
+
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      foregroundColor: Colors.black,
+      centerTitle: false,
+    ),
+
+    cardColor: const Color(0xFFF5F5F5),
+
+    textTheme: const TextTheme(
+      titleLarge: TextStyle(
+        color: Colors.black,
+        fontWeight: FontWeight.bold,
+      ),
+      bodyMedium: TextStyle(
+        color: Colors.black87,
+      ),
+    ),
+
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFFF59E0B),
+        foregroundColor: Colors.black,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: const EdgeInsets.symmetric(
+          vertical: 14,
+        ),
+      ),
+    ),
+
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: const Color(0xFFF5F5F5),
+      hintStyle: const TextStyle(
+        color: Colors.black54,
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
+      ),
+    ),
+  );
 }

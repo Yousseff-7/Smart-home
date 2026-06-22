@@ -1,5 +1,8 @@
 import 'dart:typed_data';
+import 'package:provider/provider.dart';
 
+import '../../providers/theme_provider.dart';
+import 'edit_profile_page.dart';
 import 'package:dio/dio.dart';
 
 import 'package:flutter/material.dart';
@@ -7,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
 
@@ -33,14 +38,10 @@ class _ProfilePageState
 
   String name = "";
   String email = "";
+  String image = "";
 
   Uint8List? profileImage;
 
-  final Color primaryColor =
-  const Color(0xFFF59E0B);
-
-  final Color cardColor =
-  const Color(0xFF1E1E1E);
 
   @override
   void initState() {
@@ -63,6 +64,8 @@ class _ProfilePageState
 
       email =
           prefs.getString("email") ?? "";
+      image =
+          prefs.getString("image") ?? "";
 
     });
 
@@ -97,50 +100,40 @@ class _ProfilePageState
     String fileName =
         pickedFile.name;
 
-    FormData formData =
-    FormData.fromMap({
+    FormData formData = FormData();
 
-      "image":
-      MultipartFile.fromBytes(
-
-        imageBytes,
-
-        filename: fileName,
-
-      ),
-
-    });
-
-    try {
-      print("START UPLOAD");
-      Response response =
-      await Dio().put(
-
-        "http://64.225.101.222:5000/api/auth/image",
-
-        data: formData,
-
-        options: Options(
-
-          headers: {
-
-            "Authorization":
-            "bearer $token",
-
-            "Content-Type":
-            "multipart/form-data",
-
-          },
-
+    formData.files.add(
+      MapEntry(
+        "file",
+        MultipartFile.fromBytes(
+          imageBytes,
+          filename: "profile.jpg",
         ),
+      ),
+    );
 
+    formData.fields.add(
+      const MapEntry(
+        "upload_preset",
+        "flutter_profile",
+      ),
+    );
+    try {
+
+      print("START UPLOAD");
+
+      Response response = await Dio().post(
+        "https://api.cloudinary.com/v1_1/deds7dd60/image/upload",
+        data: formData,
       );
 
       print(response.data);
 
-    } catch (e) {
+    } on DioException catch (e) {
 
-      print(e);
+      print("STATUS = ${e.response?.statusCode}");
+      print("DATA = ${e.response?.data}");
+      print("URL = ${e.requestOptions.uri}");
 
     }
 
@@ -151,11 +144,11 @@ class _ProfilePageState
 
   @override
   Widget build(BuildContext context) {
-
+    final theme = Theme.of(context);
     return Scaffold(
 
       backgroundColor:
-      const Color(0xFF0F0F0F),
+      Theme.of(context).scaffoldBackgroundColor,
 
       body: SafeArea(
 
@@ -173,21 +166,16 @@ class _ProfilePageState
 
               children: [
 
-                const Text(
-
+                Text(
                   "Profile",
-
                   style: TextStyle(
-
-                    color: Colors.white,
-
+                    color: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.color,
                     fontSize: 24,
-
-                    fontWeight:
-                    FontWeight.bold,
-
+                    fontWeight: FontWeight.bold,
                   ),
-
                 ),
 
                 const SizedBox(height: 30),
@@ -211,7 +199,7 @@ class _ProfilePageState
                           decoration:
                           BoxDecoration(
 
-                            color: cardColor,
+                            color: Theme.of(context).cardColor,
 
                             borderRadius:
                             BorderRadius.circular(
@@ -226,34 +214,27 @@ class _ProfilePageState
 
                               radius: 42,
 
-                              backgroundColor:
-                              Colors.white,
+                              backgroundColor: Colors.white,
 
                               backgroundImage:
 
-                              profileImage != null
+                              image.isNotEmpty
 
-                                  ? MemoryImage(profileImage!)
+                                  ? NetworkImage(image)
 
                                   : null,
 
                               child:
 
-                              profileImage == null
+                              image.isEmpty
 
                                   ? const Icon(
-
                                 Icons.person,
-
                                 size: 60,
-
-                                color:
-                                Colors.grey,
-
+                                color: Colors.grey,
                               )
 
                                   : null,
-
                             ),
 
                           ),
@@ -268,9 +249,12 @@ class _ProfilePageState
 
                         name,
 
-                        style: const TextStyle(
+                        style: TextStyle(
 
-                          color: Colors.white,
+                          color: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.color,
 
                           fontSize: 22,
 
@@ -287,13 +271,9 @@ class _ProfilePageState
 
                         email,
 
-                        style: const TextStyle(
-
-                          color:
-                          Colors.white70,
-
+                        style: TextStyle(
+                          color: theme.textTheme.bodyMedium?.color,
                           fontSize: 14,
-
                         ),
 
                       ),
@@ -359,13 +339,28 @@ class _ProfilePageState
                 const SizedBox(height: 28),
 
                 _buildTile(
-
                   Icons.edit,
-
                   "Edit Profile",
+                  onTap: () async {
+                    final result =
+                        await Navigator.push(
 
+                      context,
+
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            EditProfilePage(
+                              currentName: name,
+                              currentEmail: email,
+                            ),
+                      ),
+                    );
+
+                    if(result == true){
+                      loadProfileData();
+                    }
+                  },
                 ),
-
                 const SizedBox(height: 15),
 
                 _buildTile(
@@ -377,14 +372,65 @@ class _ProfilePageState
                 ),
 
                 const SizedBox(height: 30),
+                Container(
+
+                  margin: const EdgeInsets.only(
+                    top: 15,
+                  ),
+
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius:
+                    BorderRadius.circular(18),
+                  ),
+
+                  child: Consumer<ThemeProvider>(
+
+                    builder: (
+                        context,
+                        themeProvider,
+                        child,
+                        ) {
+
+                      return SwitchListTile(
+
+                        title: Text(
+                          "Dark Mode",
+                          style: TextStyle(
+                            color: theme.textTheme.titleLarge?.color,
+                          ),
+                        ),
+
+                        secondary: Icon(
+
+                          themeProvider.isDark
+                              ? Icons.dark_mode
+                              : Icons.light_mode,
+
+                          color: theme.textTheme.titleLarge?.color,
+                        ),
+
+                        value:
+                        themeProvider.isDark,
+
+                        onChanged: (value) {
+
+                          themeProvider
+                              .toggleTheme();
+
+                        },
+
+                      );
+                    },
+                  ),
+                ),
 
                 ElevatedButton(
 
                   style:
                   ElevatedButton.styleFrom(
 
-                    backgroundColor:
-                    primaryColor,
+                    backgroundColor: theme.primaryColor,
 
                     minimumSize:
                     const Size(
@@ -407,11 +453,20 @@ class _ProfilePageState
                   onPressed: () async {
 
                     final prefs =
-                    await SharedPreferences
-                        .getInstance();
+                    await SharedPreferences.getInstance();
 
                     await prefs.clear();
 
+                    Navigator.pushAndRemoveUntil(
+
+                      context,
+
+                      MaterialPageRoute(
+                        builder: (_) => const LoginScreen(),
+                      ),
+
+                          (route) => false,
+                    );
                   },
 
                   child: const Row(
@@ -462,6 +517,10 @@ class _ProfilePageState
 
       ),
 
+
+
+
+
     );
 
   }
@@ -482,8 +541,7 @@ class _ProfilePageState
 
       decoration: BoxDecoration(
 
-        color:
-        const Color(0xFF14203B),
+        color: Theme.of(context).cardColor,
 
         borderRadius:
         BorderRadius.circular(18),
@@ -498,16 +556,11 @@ class _ProfilePageState
 
             value,
 
-            style: const TextStyle(
-
-              color: Colors.white,
-
-              fontSize: 18,
-
-              fontWeight:
-              FontWeight.bold,
-
-            ),
+            style:  TextStyle(
+              color: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.color,),
 
           ),
 
@@ -517,11 +570,11 @@ class _ProfilePageState
 
             title,
 
-            style: const TextStyle(
-
-              color: Colors.white70,
-
-            ),
+            style: TextStyle(
+              color: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.color,),
 
           ),
 
@@ -535,51 +588,42 @@ class _ProfilePageState
 
   Widget _buildTile(
       IconData icon,
-      String title,
-      ) {
-
+      String title, {
+        VoidCallback? onTap,
+      }) {
     return Container(
-
       decoration: BoxDecoration(
-
-        color: cardColor,
-
-        borderRadius:
-        BorderRadius.circular(18),
-
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(18),
       ),
-
       child: ListTile(
-
+        onTap: onTap,
         leading: Icon(
           icon,
-          color: Colors.white,
+          color: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.color,
         ),
-
         title: Text(
-
           title,
-
-          style: const TextStyle(
-            color: Colors.white,
+          style:  TextStyle(
+            color: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.color,
           ),
-
         ),
-
-        trailing: const Icon(
-
+        trailing:  Icon(
           Icons.arrow_forward_ios,
-
-          color: Colors.white38,
-
+          color: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.color,
           size: 16,
-
         ),
-
       ),
-
     );
-
   }
 
 }

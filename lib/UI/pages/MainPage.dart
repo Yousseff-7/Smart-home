@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'RoomsPage.dart';
 import 'Profile_Page.dart';
+import 'automation_page.dart';
 import 'home_page.dart';
 
 class MainPage extends StatefulWidget {
@@ -135,20 +136,7 @@ class _MainPageState
 
       const RoomsPage(),
 
-      const Center(
-
-        child: Text(
-
-          "Automation",
-
-          style: TextStyle(
-            color: Colors.white,
-          ),
-
-        ),
-
-      ),
-
+      const AutomationPage(),
       ProfilePage(
 
         roomsNumber:
@@ -163,8 +151,8 @@ class _MainPageState
 
     return Scaffold(
 
-      backgroundColor:
-      const Color(0xFF0F0F0F),
+        backgroundColor:
+        Theme.of(context).scaffoldBackgroundColor,
 
       body: isLoading
 
@@ -199,8 +187,7 @@ class _MainPageState
         },
 
         backgroundColor:
-        const Color(0xFF1E1E1E),
-
+        Theme.of(context).cardColor,
         selectedItemColor:
         Colors.orange,
 
