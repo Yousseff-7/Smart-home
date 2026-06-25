@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../pages/Aipage.dart';
 import '../pages/DashboardChartsPage.dart';
-
+import '../../services/ai_service.dart';
 class DeviceCard extends StatefulWidget {
 
-  final String deviceId;
+
   final String iconPath;
   final String name;
   final bool isOn;
-
+  final String deviceId;
   final Function(bool) onToggle;
 
   final VoidCallback onDelete;
@@ -38,7 +38,25 @@ class _DeviceCardState
 
   late bool isOn;
 
-  bool isWarning = false;
+  String aiStatus = "loading";
+  final AIService aiService = AIService();
+
+  Future loadAIStatus() async {
+
+    String status =
+    await aiService.getStatus(
+      widget.deviceId,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+
+      aiStatus = status;
+
+    });
+
+  }
 
   @override
   void initState() {
@@ -46,6 +64,8 @@ class _DeviceCardState
     super.initState();
 
     isOn = widget.isOn;
+
+    loadAIStatus();
 
   }
 
@@ -213,9 +233,12 @@ class _DeviceCardState
             style: TextStyle(
 
               color:
-              isOn
-                  ? Colors.white70
-                  : Colors.white60,
+
+              aiStatus == "anomaly"
+
+                  ? Colors.red
+
+                  : Colors.green,
 
               fontSize: 13,
 
@@ -239,6 +262,9 @@ class _DeviceCardState
 
                   onTap: () {
 
+                    print("OPEN DASHBOARD");
+                    print("DEVICE ID = ${widget.deviceId}");
+
                     Navigator.push(
 
                       context,
@@ -246,10 +272,7 @@ class _DeviceCardState
                       MaterialPageRoute(
 
                         builder: (_) => DashboardChartsPage(
-
-                          deviceId:
-                          widget.deviceId,
-
+                          deviceId: widget.deviceId,
                         ),
 
                       ),
@@ -309,8 +332,11 @@ class _DeviceCardState
 
                     MaterialPageRoute(
 
-                      builder: (_) =>
-                      const AiPage(),
+                      builder: (_) => AIPage(
+
+                        deviceId: widget.deviceId,
+
+                      ),
 
                     ),
 
@@ -320,8 +346,7 @@ class _DeviceCardState
 
                 child: Container(
 
-                  padding:
-                  const EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 10,
                   ),
@@ -329,8 +354,11 @@ class _DeviceCardState
                   decoration: BoxDecoration(
 
                     color:
-                    isWarning
+
+                    aiStatus == "anomaly"
                         ? Colors.red
+                        : aiStatus == "warning"
+                        ? Colors.orange
                         : Colors.green,
 
                     borderRadius:
@@ -344,12 +372,12 @@ class _DeviceCardState
 
                       Icon(
 
-                        isWarning
+                        aiStatus == "anomaly"
+
                             ? Icons.warning
+
                             : Icons.check_circle,
-
                         color: Colors.white,
-
                         size: 16,
 
                       ),
@@ -357,11 +385,11 @@ class _DeviceCardState
                       const SizedBox(width: 5),
 
                       Text(
+                        aiStatus == "anomaly"
 
-                        isWarning
                             ? "Warning"
-                            : "Normal",
 
+                            : "Normal",
                         style: const TextStyle(
                           color: Colors.white,
                         ),

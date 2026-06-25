@@ -37,9 +37,11 @@ class _DynamicDevicesPageState
   @override
   void initState() {
     super.initState();
+
+    print("ROOM ID = ${widget.roomId}");
+
     loadDevices();
   }
-
   Future loadDevices() async {
 
     try {
@@ -48,6 +50,9 @@ class _DynamicDevicesPageState
       await service.getDevices(
         widget.roomId,
       );
+
+      print("ROOM ID => ${widget.roomId}");
+      print("DEVICES => $devices");
 
     } catch (e) {
 
@@ -58,7 +63,6 @@ class _DynamicDevicesPageState
     setState(() {
       isLoading = false;
     });
-
   }
 
   @override
@@ -146,34 +150,13 @@ class _DynamicDevicesPageState
             onToggle: (val) async {
 
               await service.updateState(
-
                 device.id!,
-
                 val ? "on" : "off",
-
               );
 
-              setState(() {
-
-                device.state =
-                val ? "on" : "off";
-
-              });
-
-            },
-
-            onDelete: () async {
-
-              await service.deleteDevice(
-                device.id!,
-              );
-
-              loadDevices();
-
-            },
+            }, onDelete: () {  },
 
           );
-
         },
 
       ),

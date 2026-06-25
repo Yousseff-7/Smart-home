@@ -115,21 +115,17 @@ class _RoomsPageState extends State<RoomsPage> {
             return AlertDialog(
 
               backgroundColor:
-              const Color(
-                0xFF1E1E1E,
-              ),
+              Theme.of(context).scaffoldBackgroundColor,
 
               title:
-              const Text(
-
+              Text(
                 "Add Room",
-
-                style:
-                TextStyle(
-                  color:
-                  Colors.white,
+                style: TextStyle(
+                  color: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.color,
                 ),
-
               ),
 
               content:
@@ -265,12 +261,10 @@ class _RoomsPageState extends State<RoomsPage> {
                     controller:
                     controller,
 
-                    style:
-                    const TextStyle(
-
-                      color:
-                      Colors.white,
-
+                    style: TextStyle(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface,
                     ),
 
                     decoration:
@@ -393,24 +387,25 @@ class _RoomsPageState extends State<RoomsPage> {
     return Scaffold(
 
       backgroundColor:
-      const Color(
-        0xFF0F0F0F,
-      ),
+      Theme.of(context).scaffoldBackgroundColor,
 
       floatingActionButton:
 
       FloatingActionButton(
 
         backgroundColor:
-        Colors.orange,
+        Theme.of(context)
+            .colorScheme
+            .primary,
 
-        onPressed:
-        addRoom,
+        foregroundColor:
+        Theme.of(context)
+            .colorScheme
+            .onPrimary,
 
-        child:
-        const Icon(
-          Icons.add,
-        ),
+        onPressed: addRoom,
+
+        child: const Icon(Icons.add),
 
       ),
 
@@ -436,23 +431,16 @@ class _RoomsPageState extends State<RoomsPage> {
 
             children:[
 
-              const Text(
-
+              Text(
                 "Your Rooms",
-
-                style:
-                TextStyle(
-
-                  color:
-                  Colors.white,
-
-                  fontSize:28,
-
-                  fontWeight:
-                  FontWeight.bold,
-
+                style: TextStyle(
+                  color: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
                 ),
-
               ),
 
               const SizedBox(

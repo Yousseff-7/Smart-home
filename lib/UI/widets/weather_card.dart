@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../../models/weather_model.dart';
 
 class WeatherCard extends StatelessWidget {
@@ -16,16 +15,27 @@ class WeatherCard extends StatelessWidget {
 
     return Container(
 
-      padding:
-      const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
 
       decoration: BoxDecoration(
 
-        color:
-        const Color(0xFF1E1E1E),
+        color: Theme.of(context).cardColor,
 
-        borderRadius:
-        BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20),
+
+        boxShadow: [
+
+          BoxShadow(
+
+            color: Colors.black.withOpacity(0.08),
+
+            blurRadius: 10,
+
+            offset: const Offset(0, 4),
+
+          ),
+
+        ],
 
       ),
 
@@ -38,9 +48,13 @@ class WeatherCard extends StatelessWidget {
             children: [
 
               const Icon(
+
                 Icons.wb_sunny,
+
                 color: Colors.orange,
+
                 size: 35,
+
               ),
 
               const SizedBox(width: 12),
@@ -58,10 +72,11 @@ class WeatherCard extends StatelessWidget {
 
                       weather.city,
 
-                      style:
-                      const TextStyle(
+                      style: TextStyle(
 
-                        color: Colors.white,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface,
 
                         fontSize: 18,
 
@@ -69,32 +84,39 @@ class WeatherCard extends StatelessWidget {
                         FontWeight.bold,
 
                       ),
+
                     ),
 
                     Text(
 
                       weather.condition,
 
-                      style:
-                      const TextStyle(
+                      style: TextStyle(
 
-                        color:
-                        Colors.white70,
+                        color: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.color,
 
                       ),
+
                     ),
+
                   ],
+
                 ),
+
               ),
 
               Text(
 
                 "${weather.temperature.toStringAsFixed(0)}°C",
 
-                style:
-                const TextStyle(
+                style: TextStyle(
 
-                  color: Colors.white,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface,
 
                   fontSize: 28,
 
@@ -102,8 +124,11 @@ class WeatherCard extends StatelessWidget {
                   FontWeight.bold,
 
                 ),
+
               ),
+
             ],
+
           ),
 
           const SizedBox(height: 15),
@@ -119,25 +144,42 @@ class WeatherCard extends StatelessWidget {
 
                 "💧 ${weather.humidity}%",
 
-                style:
-                const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.color,
+
                 ),
+
               ),
 
               Text(
 
                 "🌬 ${weather.wind.toStringAsFixed(0)} km/h",
 
-                style:
-                const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.color,
+
                 ),
+
               ),
+
             ],
+
           ),
+
         ],
+
       ),
+
     );
+
   }
+
 }

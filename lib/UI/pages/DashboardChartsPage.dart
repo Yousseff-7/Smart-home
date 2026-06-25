@@ -33,23 +33,23 @@ class _DashboardChartsPageState
   double voltageNow = 0;
   double powerNow = 0;
 
+  double monthlyAverage = 0;
+  double yearlyAverage = 0;
+  double monthlyTotal = 0;
+  double yearlyTotal = 0;
+
   List<double> monthlyPower = [];
   List<double> yearlyPower = [];
-
   final Dio dio = Dio(
+
     BaseOptions(
-      baseUrl: "http://64.225.101.222:5000/api",
+
+      baseUrl:
+      "http://64.225.101.222:5000/api",
+
     ),
+
   );
-
-  @override
-  void initState() {
-    super.initState();
-
-    loadData();
-
-    print("DEVICE ID = ${widget.deviceId}");
-  }
 
   Future<String> getToken() async {
 
@@ -60,172 +60,212 @@ class _DashboardChartsPageState
 
   }
 
-  Future loadData() async {
+  @override
+  void initState() {
+    super.initState();
 
+    print("================================");
+    print("DEVICE ID => ${widget.deviceId}");
+    print("================================");
+
+    loadData();
+  }
+
+  Future<void> loadData() async {
     try {
+      setState(() {
+        isLoading = true;
+      });
 
       String token = await getToken();
 
+      print("DEVICE ID => ${widget.deviceId}");
+
       /// ================= READINGS =================
 
-      Response readingsResponse =
-      await dio.get(
-
+      Response readingsResponse = await dio.get(
         "/readings/device/${widget.deviceId}",
-
         options: Options(
           headers: {
-            "Authorization":
-            "bearer $token",
+            "Authorization": "bearer $token",
           },
         ),
-
       );
-      print("DEVICE ID = ${widget.deviceId}");
-      print("READINGS = ${readingsResponse.data}");
 
-      Map<String, dynamic> readingsData =
-          readingsResponse.data;
+      print("READINGS TYPE => ${readingsResponse.data.runtimeType}");
+      print("READINGS DATA => ${readingsResponse.data}");
 
-      List readings =
-          readingsData["readings"] ?? [];
+      List readings = [];
+
+      if (readingsResponse.data is List) {
+        readings = List.from(readingsResponse.data);
+      } else if (readingsResponse.data is Map &&
+          readingsResponse.data["readings"] != null) {
+        readings = List.from(
+          readingsResponse.data["readings"],
+        );
+      }
+
+      print("READINGS COUNT => ${readings.length}");
+
+      currentValues = readings
+          .map<double>((e) =>
+      (e["current"] as num?)?.toDouble() ?? 0)
+          .toList();
+
+      voltageValues = readings
+          .map<double>((e) =>
+      (e["voltage"] as num?)?.toDouble() ?? 0)
+          .toList();
+
+      powerValues = readings
+          .map<double>((e) =>
+      (e["power"] as num?)?.toDouble() ?? 0)
+          .toList();
+
+      /// قلل عدد النقاط المرسومة
+
       currentValues =
-          readings
-              .map<double>(
-                (e) =>
-                ((e["current"] ?? 0) as num)
-                    .toDouble(),
-          )
-              .toList();
+          currentValues.take(300).toList();
 
       voltageValues =
-          readings
-              .map<double>(
-                (e) =>
-                ((e["voltage"] ?? 0) as num)
-                    .toDouble(),
-          )
-              .toList();
+          voltageValues.take(300).toList();
 
       powerValues =
-          readings
-              .map<double>(
-                (e) =>
-                ((e["power"] ?? 0) as num)
-                    .toDouble(),
-          )
-              .toList();
+          powerValues.take(300).toList();
 
-      if(readings.isNotEmpty){
+      if (readings.isNotEmpty) {
+
+        final latest = readings.firstWhere(
+              (e) =>
+          ((e["current"] ?? 0) as num) > 0 ||
+              ((e["power"] ?? 0) as num) > 0,
+          orElse: () => readings.first,
+        );
 
         currentNow =
-            ((readings.last["current"] ?? 0)
-            as num)
-                .toDouble();
+            (latest["current"] as num?)
+                ?.toDouble() ?? 0;
 
         voltageNow =
-            ((readings.last["voltage"] ?? 0)
-            as num)
-                .toDouble();
+            (latest["voltage"] as num?)
+                ?.toDouble() ?? 0;
 
         powerNow =
-            ((readings.last["power"] ?? 0)
-            as num)
-                .toDouble();
-
+            (latest["power"] as num?)
+                ?.toDouble() ?? 0;
       }
+      print("FIRST => ${readings.first}");
+      print("LAST => ${readings.last}");
+
+      print("CURRENT VALUES => ${currentValues.length}");
+      print("VOLTAGE VALUES => ${voltageValues.length}");
+      print("POWER VALUES => ${powerValues.length}");
+
+      print("CURRENT NOW => $currentNow");
+      print("VOLTAGE NOW => $voltageNow");
+      print("POWER NOW => $powerNow");
 
       /// ================= MONTHLY =================
 
-      Response monthlyResponse =
-      await dio.get(
+      final now = DateTime.now();
 
-        "/stats/monthly?deviceId=${widget.deviceId}&month=2&year=2026",
-
+      Response monthlyResponse = await dio.get(
+        "/stats/monthly?deviceId=${widget.deviceId}&month=${now.month}&year=${now.year}",
         options: Options(
           headers: {
-            "Authorization":
-            "bearer $token",
+            "Authorization": "bearer $token",
           },
         ),
-
       );
 
-      print("MONTHLY = ${monthlyResponse.data}");
+      print("MONTHLY => ${monthlyResponse.data}");
 
       Map<String, dynamic> monthlyData =
-          monthlyResponse.data;
+      Map<String, dynamic>.from(
+        monthlyResponse.data,
+      );
+
+      monthlyAverage =
+          ((monthlyData["monthlyAverage"] ?? 0) as num)
+              .toDouble();
+
+      monthlyTotal =
+          ((monthlyData["monthlyTotal"] ?? 0) as num)
+              .toDouble();
 
       List monthly =
           monthlyData["daily"] ?? [];
 
-      monthlyPower =
-          monthly
-              .map<double>(
-                (e) =>
-                ((e["totalPower"] ?? 0)
-                as num)
-                    .toDouble(),
-          )
-              .toList();
+      monthlyPower = monthly
+          .map<double>(
+            (e) =>
+            ((e["totalPower"] ?? 0) as num)
+                .toDouble(),
+      )
+          .toList();
+
+      print("MONTHLY POWER => ${monthlyPower.length}");
 
       /// ================= YEARLY =================
 
-      Response yearlyResponse =
-      await dio.get(
-
-        "/stats/yearly?deviceId=${widget.deviceId}&year=2026",
-
+      Response yearlyResponse = await dio.get(
+        "/stats/yearly?deviceId=${widget.deviceId}&year=${now.year}",
         options: Options(
           headers: {
-            "Authorization":
-            "bearer $token",
+            "Authorization": "bearer $token",
           },
         ),
-
       );
 
-      print("YEARLY = ${yearlyResponse.data}");
+      print("YEARLY => ${yearlyResponse.data}");
 
       Map<String, dynamic> yearlyData =
-          yearlyResponse.data;
+      Map<String, dynamic>.from(
+        yearlyResponse.data,
+      );
+
+      yearlyAverage =
+          ((yearlyData["yearlyAverage"] ?? 0) as num)
+              .toDouble();
+
+      yearlyTotal =
+          ((yearlyData["yearlyTotal"] ?? 0) as num)
+              .toDouble();
 
       List yearly =
           yearlyData["monthly"] ?? [];
 
-      yearlyPower =
-          yearly
-              .map<double>(
-                (e) =>
-                ((e["totalPower"] ?? 0)
-                as num)
-                    .toDouble(),
-          )
-              .toList();
+      yearlyPower = yearly
+          .map<double>(
+            (e) =>
+            ((e["totalPower"] ?? 0) as num)
+                .toDouble(),
+      )
+          .toList();
+
+      print("YEARLY POWER => ${yearlyPower.length}");
 
       setState(() {
         isLoading = false;
       });
-
-    } catch (e) {
-
-      print("ERROR = $e");
+    } catch (e, s) {
+      print("ERROR => $e");
+      print(s);
 
       setState(() {
         isLoading = false;
       });
-
     }
-
   }
-
   @override
   Widget build(BuildContext context) {
-
     final tabs = [
+
       "Current",
       "Voltage",
       "Power",
+
     ];
 
     final dataSets = [
@@ -244,201 +284,193 @@ class _DashboardChartsPageState
 
     ];
 
+    final liveValues = [
+
+      "${currentNow.toStringAsFixed(1)} A",
+      "${voltageNow.toStringAsFixed(1)} V",
+      "${powerNow.toStringAsFixed(1)} W",
+
+    ];
+
     return Scaffold(
 
-      backgroundColor:
-      const Color(0xFF121212),
-
-      appBar: AppBar(
-
         backgroundColor:
-        Colors.black,
+        const Color(0xFF121212),
 
-        elevation: 0,
+    appBar: AppBar(
 
-        leading: IconButton(
+    backgroundColor:
+    Colors.black,
 
-          onPressed: () =>
-              Navigator.pop(context),
+    elevation: 0,
 
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-          ),
+    title: const Text(
+    "Live Sensors Dashboard",
+    ),
 
-        ),
+    centerTitle: true,
 
-        title: const Text(
-          "Live Sensors Dashboard",
-          style: TextStyle(
-            color: Colors.white,
-          ),
-        ),
+    ),
 
-        centerTitle: true,
+    body: isLoading
 
-      ),
+    ? const Center(
+    child:
+    CircularProgressIndicator(),
+    )
 
-      body: isLoading
+        : SingleChildScrollView(
 
-          ? const Center(
-        child:
-        CircularProgressIndicator(),
-      )
+    child: Padding(
 
-          : SingleChildScrollView(
+    padding:
+    const EdgeInsets.all(16),
 
-        child: Column(
+    child: Column(
 
-          children: [
+    children: [
 
-            const SizedBox(height: 15),
+    /// LIVE VALUES
 
-            /// ================= LIVE VALUES =================
+    Row(
 
-            Padding(
+    children: [
 
-              padding:
-              const EdgeInsets.symmetric(
-                horizontal: 16,
-              ),
+    Expanded(
 
-              child: Row(
+    child: _buildLiveCard(
 
-                children: [
+    "Current",
+    liveValues[0],
+    Colors.cyan,
 
-                  Expanded(
-                    child: _buildLiveCard(
-                      "Current",
-                      "$currentNow A",
-                      Colors.cyan,
-                    ),
-                  ),
+    ),
 
-                  const SizedBox(width: 10),
+    ),
 
-                  Expanded(
-                    child: _buildLiveCard(
-                      "Voltage",
-                      "$voltageNow V",
-                      Colors.orange,
-                    ),
-                  ),
+    const SizedBox(width: 10),
 
-                  const SizedBox(width: 10),
+    Expanded(
 
-                  Expanded(
-                    child: _buildLiveCard(
-                      "Power",
-                      "$powerNow W",
-                      Colors.pinkAccent,
-                    ),
-                  ),
+    child: _buildLiveCard(
 
-                ],
+    "Voltage",
+    liveValues[1],
+    Colors.orange,
 
-              ),
+    ),
 
-            ),
+    ),
 
-            const SizedBox(height: 25),
+    const SizedBox(width: 10),
+
+    Expanded(
+
+    child: _buildLiveCard(
+
+    "Power",
+    liveValues[2],
+    Colors.pinkAccent,
+
+    ),
+
+    ),
+
+    ],
+
+    ),
+
+    const SizedBox(height: 20),
 
             /// ================= FILTER =================
+    Row(
 
-            Padding(
+    mainAxisAlignment:
+    MainAxisAlignment.spaceBetween,
 
-              padding:
-              const EdgeInsets.symmetric(
-                horizontal: 16,
-              ),
+    children:
 
-              child: Row(
+    List.generate(4, (index) {
 
-                mainAxisAlignment:
-                MainAxisAlignment
-                    .spaceBetween,
+    final names = [
 
-                children:
-                List.generate(4, (index) {
+    "Today",
+    "Week",
+    "Month",
+    "Year",
 
-                  final names = [
+    ];
 
-                    "Today",
-                    "Week",
-                    "Month",
-                    "Year",
+    bool active =
+    selectedTime == index;
 
-                  ];
+    return GestureDetector(
 
-                  bool active =
-                      selectedTime ==
-                          index;
+    onTap: () {
 
-                  return GestureDetector(
+    setState(() {
 
-                    onTap: () {
+    selectedTime =
+    index;
 
-                      setState(() {
-                        selectedTime =
-                            index;
-                      });
+    });
 
-                    },
+    },
 
-                    child: Container(
+    child: Container(
 
-                      padding:
-                      const EdgeInsets
-                          .symmetric(
-                        horizontal: 16,
-                        vertical: 10,
-                      ),
+    padding:
+    const EdgeInsets.symmetric(
 
-                      decoration:
-                      BoxDecoration(
+    horizontal: 18,
+    vertical: 10,
 
-                        color: active
-                            ? const Color(
-                          0xFFF59E0B,
-                        )
-                            : Colors.black26,
+    ),
 
-                        borderRadius:
-                        BorderRadius
-                            .circular(
-                          12,
-                        ),
+    decoration:
+    BoxDecoration(
 
-                      ),
+    color: active
 
-                      child: Text(
+    ? Colors.orange
 
-                        names[index],
+        : Colors.black26,
 
-                        style: TextStyle(
+    borderRadius:
+    BorderRadius.circular(
+    12,
+    ),
 
-                          color: active
-                              ? Colors.black
-                              : Colors.white,
+    ),
 
-                          fontWeight:
-                          FontWeight
-                              .bold,
+    child: Text(
 
-                        ),
+    names[index],
 
-                      ),
+    style: TextStyle(
 
-                    ),
+    color: active
 
-                  );
+    ? Colors.black
 
-                }),
+        : Colors.white,
 
-              ),
+    fontWeight:
+    FontWeight.bold,
 
-            ),
+    ),
 
-            const SizedBox(height: 20),
+    ),
+
+    ),
+
+    );
+
+    }),
+
+    ),
+
+    const SizedBox(height: 20),
 
             /// ================= MAIN CHART =================
 
@@ -587,78 +619,125 @@ class _DashboardChartsPageState
 
             const SizedBox(height: 20),
 
-            /// ================= SENSOR CHART =================
+      /// MONTHLY / YEARLY CHART
 
-            Padding(
+      Container(
+
+        padding:
+        const EdgeInsets.all(16),
+
+        decoration: BoxDecoration(
+
+          color:
+          const Color(0xFF1E1E1E),
+
+          borderRadius:
+          BorderRadius.circular(20),
+
+        ),
+
+        child: SizedBox(
+
+          height: 220,
+
+          child: LineChartWidget(
+
+            values:
+
+            selectedTime == 3
+
+                ? yearlyPower
+
+                : monthlyPower,
+
+            color: Colors.cyan,
+
+          ),
+
+        ),
+
+      ),
+
+      const SizedBox(height: 25),
+
+      /// SENSOR TABS
+
+      Row(
+
+        mainAxisAlignment:
+        MainAxisAlignment.spaceBetween,
+
+        children:
+
+        List.generate(3, (index) {
+
+          bool active =
+              selectedTab == index;
+
+          return GestureDetector(
+
+            onTap: () {
+
+              setState(() {
+
+                selectedTab =
+                    index;
+
+              });
+
+            },
+
+            child: Container(
 
               padding:
               const EdgeInsets.symmetric(
-                horizontal: 16,
+
+                horizontal: 20,
+                vertical: 10,
+
               ),
 
-              child: Container(
+              decoration:
+              BoxDecoration(
 
-                padding:
-                const EdgeInsets.all(18),
+                color: active
 
-                decoration:
-                BoxDecoration(
+                    ? colors[index]
+                    .withOpacity(0.2)
 
-                  color:
-                  const Color(
-                    0xFF1A1A1A,
-                  ),
+                    : Colors.black26,
 
-                  borderRadius:
-                  BorderRadius.circular(
-                    18,
-                  ),
+                borderRadius:
+                BorderRadius.circular(
+                  14,
+                ),
+
+                border: Border.all(
+
+                  color: active
+
+                      ? colors[index]
+
+                      : Colors.white12,
 
                 ),
 
-                child: Column(
+              ),
 
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              child: Text(
 
-                  children: [
+                tabs[index],
 
-                    Text(
+                style: TextStyle(
 
-                      "${tabs[selectedTab]} Chart",
+                  color: active
 
-                      style: const TextStyle(
+                      ? colors[index]
 
-                        color: Colors.white,
+                      : Colors.white70,
 
-                        fontSize: 18,
-
-                        fontWeight:
-                        FontWeight.bold,
-
-                      ),
-
-                    ),
-
-                    const SizedBox(height: 15),
-
-                    SizedBox(
-
-                      height: 220,
-
-                      child: LineChartWidget(
-
-                        values:
-                        dataSets[selectedTab],
-
-                        color:
-                        colors[selectedTab],
-
-                      ),
-
-                    ),
-
-                  ],
+                  fontWeight:
+                  FontWeight.bold,
 
                 ),
 
@@ -666,7 +745,72 @@ class _DashboardChartsPageState
 
             ),
 
-            const SizedBox(height: 30),
+          );
+
+        }),
+
+      ),
+
+      const SizedBox(height: 20),
+
+      /// SENSOR CHART
+
+      Container(
+
+        padding:
+        const EdgeInsets.all(18),
+
+        decoration: BoxDecoration(
+
+          color:
+          const Color(0xFF1E1E1E),
+
+          borderRadius:
+          BorderRadius.circular(18),
+
+        ),
+
+        child: Column(
+
+          crossAxisAlignment:
+          CrossAxisAlignment.start,
+
+          children: [
+
+            Text(
+
+              "${tabs[selectedTab]} Chart",
+
+              style: const TextStyle(
+
+                color: Colors.white,
+
+                fontSize: 18,
+
+                fontWeight:
+                FontWeight.bold,
+
+              ),
+
+            ),
+
+            const SizedBox(height: 15),
+
+            SizedBox(
+
+              height: 220,
+
+              child: LineChartWidget(
+
+                values:
+                dataSets[selectedTab],
+
+                color:
+                colors[selectedTab],
+
+              ),
+
+            ),
 
           ],
 
@@ -674,10 +818,99 @@ class _DashboardChartsPageState
 
       ),
 
+      const SizedBox(height: 25),
+
+      /// STATS
+
+      Row(
+
+        children: [
+
+          Expanded(
+
+            child: _buildLiveCard(
+
+              "Monthly Avg",
+              monthlyAverage
+                  .toStringAsFixed(1),
+
+              Colors.green,
+
+            ),
+
+          ),
+
+          const SizedBox(width: 10),
+
+          Expanded(
+
+            child: _buildLiveCard(
+
+              "Yearly Avg",
+              yearlyAverage
+                  .toStringAsFixed(1),
+
+              Colors.deepPurple,
+
+            ),
+
+          ),
+
+        ],
+
+      ),
+
+      const SizedBox(height: 10),
+
+      Row(
+
+        children: [
+
+          Expanded(
+
+            child: _buildLiveCard(
+
+              "Monthly Total",
+              monthlyTotal
+                  .toStringAsFixed(1),
+
+              Colors.orange,
+
+            ),
+
+          ),
+
+          const SizedBox(width: 10),
+
+          Expanded(
+
+            child: _buildLiveCard(
+
+              "Yearly Total",
+              yearlyTotal
+                  .toStringAsFixed(1),
+
+              Colors.redAccent,
+
+            ),
+
+          ),
+
+        ],
+
+      ),
+
+    ],
+
+    ),
+
+    ),
+
+    ),
+
     );
 
   }
-
   Widget _buildLiveCard(
 
       String title,
@@ -688,16 +921,33 @@ class _DashboardChartsPageState
 
     return Container(
 
-      padding:
-      const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
 
       decoration: BoxDecoration(
 
-        color:
-        const Color(0xFF1E1E1E),
+        color: const Color(0xFF1E1E1E),
 
         borderRadius:
         BorderRadius.circular(18),
+
+        border: Border.all(
+          color: color.withOpacity(0.3),
+        ),
+
+        boxShadow: [
+
+          BoxShadow(
+
+            color:
+            color.withOpacity(0.15),
+
+            blurRadius: 12,
+
+            spreadRadius: 1,
+
+          ),
+
+        ],
 
       ),
 
@@ -713,24 +963,34 @@ class _DashboardChartsPageState
             title,
 
             style: TextStyle(
+
               color: color,
+
               fontWeight:
               FontWeight.bold,
+
+              fontSize: 14,
+
             ),
 
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
           Text(
 
             value,
 
+            maxLines: 1,
+
+            overflow:
+            TextOverflow.ellipsis,
+
             style: const TextStyle(
 
               color: Colors.white,
 
-              fontSize: 22,
+              fontSize: 24,
 
               fontWeight:
               FontWeight.bold,
@@ -767,15 +1027,24 @@ class LineChartWidget
   @override
   Widget build(BuildContext context) {
 
-    if(values.isEmpty){
+    if (values.isEmpty) {
 
       return const Center(
+
         child: Text(
-          "No Data",
+
+          "No Data Available",
+
           style: TextStyle(
-            color: Colors.white,
+
+            color: Colors.white70,
+
+            fontSize: 16,
+
           ),
+
         ),
+
       );
 
     }
@@ -801,17 +1070,68 @@ class LineChartWidget
 
         maxY: maxY,
 
-        gridData:
-        FlGridData(show: true),
+        gridData: FlGridData(
+
+          show: true,
+
+          drawVerticalLine: true,
+
+          horizontalInterval:
+          maxY / 5,
+
+          getDrawingHorizontalLine:
+              (value) {
+
+            return FlLine(
+
+              color:
+              Colors.white12,
+
+              strokeWidth: 1,
+
+            );
+
+          },
+
+          getDrawingVerticalLine:
+              (value) {
+
+            return FlLine(
+
+              color:
+              Colors.white10,
+
+              strokeWidth: 1,
+
+            );
+
+          },
+
+        ),
+
+        borderData: FlBorderData(
+
+          show: true,
+
+          border: Border.all(
+
+            color:
+            Colors.white12,
+
+          ),
+
+        ),
 
         titlesData: FlTitlesData(
 
-          bottomTitles: AxisTitles(
+          leftTitles: AxisTitles(
 
             sideTitles:
             SideTitles(
 
               showTitles: true,
+
+              reservedSize: 40,
 
               getTitlesWidget:
                   (value, meta) {
@@ -824,9 +1144,12 @@ class LineChartWidget
 
                   style:
                   const TextStyle(
+
                     color:
-                    Colors.white70,
+                    Colors.white54,
+
                     fontSize: 10,
+
                   ),
 
                 );
@@ -837,25 +1160,58 @@ class LineChartWidget
 
           ),
 
-          leftTitles: AxisTitles(
+          bottomTitles: AxisTitles(
+
             sideTitles:
             SideTitles(
-              showTitles: false,
+
+              showTitles: true,
+
+              reservedSize: 24,
+
+              getTitlesWidget:
+                  (value, meta) {
+
+                return Text(
+
+                  value
+                      .toInt()
+                      .toString(),
+
+                  style:
+                  const TextStyle(
+
+                    color:
+                    Colors.white54,
+
+                    fontSize: 10,
+
+                  ),
+
+                );
+
+              },
+
             ),
+
           ),
 
           topTitles: AxisTitles(
+
             sideTitles:
             SideTitles(
               showTitles: false,
             ),
+
           ),
 
           rightTitles: AxisTitles(
+
             sideTitles:
             SideTitles(
               showTitles: false,
             ),
+
           ),
 
         ),
@@ -865,29 +1221,48 @@ class LineChartWidget
           LineChartBarData(
 
             spots:
-            values.asMap().entries.map(
+            values
+                .asMap()
+                .entries
+                .map(
 
-                  (e) {
+                  (e) => FlSpot(
 
-                return FlSpot(
+                e.key.toDouble(),
+                e.value,
 
-                  e.key.toDouble(),
-                  e.value,
+              ),
 
-                );
-
-              },
-
-            ).toList(),
+            )
+                .toList(),
 
             isCurved: true,
 
             color: color,
 
-            barWidth: 3,
+            barWidth: 4,
 
-            dotData:
-            FlDotData(show: true),
+            isStrokeCapRound:
+            true,
+
+            belowBarData:
+            BarAreaData(
+
+              show: true,
+
+              color:
+              color.withOpacity(
+                0.2,
+              ),
+
+            ),
+
+            dotData: FlDotData(
+
+              show:
+              values.length < 30,
+
+            ),
 
           ),
 

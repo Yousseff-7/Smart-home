@@ -479,12 +479,15 @@ class _AutomationPageState extends State<AutomationPage> {
       backgroundColor:Theme.of(context).scaffoldBackgroundColor,
 
       appBar: AppBar(
-        backgroundColor: const Color(0xff070B1A),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
-        title: const Text(
+        title: Text(
           "Automation",
           style: TextStyle(
-            color: Colors.white,
+            color: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.color,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -501,7 +504,7 @@ class _AutomationPageState extends State<AutomationPage> {
               padding: const EdgeInsets.all(20),
 
               decoration: BoxDecoration(
-                color:  Colors.black26,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: Colors.white12,
@@ -514,10 +517,13 @@ class _AutomationPageState extends State<AutomationPage> {
 
                 children: [
 
-                  const Text(
+                  Text(
                     "New Schedule",
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.color,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -535,10 +541,13 @@ class _AutomationPageState extends State<AutomationPage> {
 
                           children: [
 
-                            const Text(
+                            Text(
                               "DEVICE",
                               style: TextStyle(
-                                color: Colors.white70,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.color
                               ),
                             ),
 
@@ -546,8 +555,7 @@ class _AutomationPageState extends State<AutomationPage> {
 
                             DropdownButtonFormField<String>(
                               value: selectedDeviceId,
-                              dropdownColor:
-                              Colors.orange,
+                              dropdownColor: Theme.of(context).cardColor,
 
                               decoration: inputDecoration(),
 
@@ -584,10 +592,13 @@ class _AutomationPageState extends State<AutomationPage> {
 
                           children: [
 
-                            const Text(
+                             Text(
                               "ACTION",
                               style: TextStyle(
-                                color: Colors.white70,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.color
                               ),
                             ),
 
@@ -637,10 +648,13 @@ class _AutomationPageState extends State<AutomationPage> {
 
                           children: [
 
-                            const Text(
+                             Text(
                               "TIME",
                               style: TextStyle(
-                                color: Colors.white70,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.color,
                               ),
                             ),
 
@@ -658,7 +672,7 @@ class _AutomationPageState extends State<AutomationPage> {
                                 ),
 
                                 decoration: BoxDecoration(
-                                  color:  Colors.orange,
+                                  color: Colors.orange,
                                   borderRadius:
                                   BorderRadius.circular(
                                     12,
@@ -680,18 +694,21 @@ class _AutomationPageState extends State<AutomationPage> {
                                           context,
                                         ),
                                         style:
-                                        const TextStyle(
-                                          color:
-                                          Colors.white,
-                                          fontSize: 18,
-                                        ),
+                                        TextStyle(
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .titleLarge
+                                              ?.color,
+                                        )
                                       ),
                                     ),
 
-                                    const Icon(
+                                     Icon(
                                       Icons.access_time,
-                                      color:
-                                      Colors.white70,
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.color
                                     ),
                                   ],
                                 ),
@@ -710,10 +727,13 @@ class _AutomationPageState extends State<AutomationPage> {
 
                           children: [
 
-                            const Text(
+                             Text(
                               "REPEAT",
                               style: TextStyle(
-                                color: Colors.white70,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.color
                               ),
                             ),
 
@@ -795,10 +815,13 @@ class _AutomationPageState extends State<AutomationPage> {
 
             const SizedBox(height: 30),
 
-            const Text(
+            Text(
               "Your Schedules",
               style: TextStyle(
-                color: Colors.white,
+                color: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.color,
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
               ),
@@ -808,20 +831,26 @@ class _AutomationPageState extends State<AutomationPage> {
 
             ...schedules.map(
                   (schedule) => Card(
-                color: const Color(0xff141B3A),
+                    color: Theme.of(context).cardColor,
 
                 child: ListTile(
                   title: Text(
                     schedule["deviceId"]["name"],
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.color,
                     ),
                   ),
 
                   subtitle: Text(
                     "${schedule["action"]} • ${schedule["time"]} • ${schedule["repeatType"]}",
-                    style: const TextStyle(
-                      color: Colors.white70,
+                    style: TextStyle(
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.color,
                     ),
                   ),
 
@@ -866,22 +895,28 @@ class _AutomationPageState extends State<AutomationPage> {
                                 backgroundColor:
                                 Theme.of(context).cardColor,
 
-                                title: const Text(
+                                title: Text(
 
                                   "Delete Schedule",
 
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.color,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
 
-                                content: const Text(
+                                content: Text(
 
                                   " Do you want to continue?",
 
                                   style: TextStyle(
-                                    color: Colors.white70,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.color,
                                   ),
                                 ),
 

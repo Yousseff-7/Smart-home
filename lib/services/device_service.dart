@@ -45,14 +45,16 @@ class DeviceService {
 
     );
 
+    print("ROOM ID => $roomId");
+    print("DEVICES => ${response.data}");
+
     List data = response.data;
 
     return data
         .map(
-          (e)=>DeviceModel.fromJson(e),
+          (e) => DeviceModel.fromJson(e),
     )
         .toList();
-
   }
 
   Future addDevice(

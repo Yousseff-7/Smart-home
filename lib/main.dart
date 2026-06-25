@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'providers/theme_provider.dart';
+import 'providers/language_provider.dart';
+
+import 'l10n/app_localizations.dart';
+
 import 'theme.dart';
 import 'UI/pages/MainPage.dart';
 import 'UI/pages/login_page.dart';
@@ -19,9 +24,19 @@ void main() async {
 
   runApp(
 
-    ChangeNotifierProvider(
+    MultiProvider(
 
-      create: (_) => ThemeProvider(),
+      providers: [
+
+        ChangeNotifierProvider(
+          create: (_) => ThemeProvider(),
+        ),
+
+        ChangeNotifierProvider(
+          create: (_) => LanguageProvider(),
+        ),
+
+      ],
 
       child: MyApp(
         check: login,
@@ -44,24 +59,52 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    return Consumer<ThemeProvider>(
+    return Consumer2<
+        ThemeProvider,
+        LanguageProvider>(
 
       builder: (
+
           context,
           themeProvider,
+          languageProvider,
           child,
+
           ) {
 
         return MaterialApp(
 
-          debugShowCheckedModeBanner:
-          false,
+          debugShowCheckedModeBanner: false,
 
           theme: AppTheme.lightTheme,
 
           darkTheme: AppTheme.darkTheme,
 
-          themeMode: themeProvider.themeMode,
+          themeMode:
+          themeProvider.themeMode,
+
+          locale:
+          languageProvider.locale,
+
+          supportedLocales: const [
+
+            Locale('en'),
+            Locale('ar'),
+
+          ],
+
+          localizationsDelegates: const [
+
+            AppLocalizations.delegate,
+
+            GlobalMaterialLocalizations.delegate,
+
+            GlobalWidgetsLocalizations.delegate,
+
+            GlobalCupertinoLocalizations.delegate,
+
+          ],
+
           home:
 
           check

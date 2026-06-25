@@ -8,7 +8,8 @@ import '../../services/device_service.dart';
 import '../../services/room_service.dart';
 import '../../services/weather_service.dart';
 import '../widets/weather_card.dart';
-
+import 'chat_page.dart';
+import '../../l10n/app_localizations.dart';
 class HomePage extends StatefulWidget {
 
   const HomePage({super.key});
@@ -221,17 +222,23 @@ class _HomePageState
 
           behavior: SnackBarBehavior.floating,
 
-          backgroundColor:
-          Theme.of(context).cardColor,
+          margin: const EdgeInsets.all(20),
 
           elevation: 10,
 
-          margin: const EdgeInsets.all(20),
+          backgroundColor:
+
+          Theme.of(context).brightness ==
+              Brightness.dark
+
+              ? const Color(0xFF1E1E1E)
+
+              : Colors.white,
 
           shape: RoundedRectangleBorder(
 
             borderRadius:
-            BorderRadius.circular(16),
+            BorderRadius.circular(18),
 
           ),
 
@@ -239,17 +246,35 @@ class _HomePageState
 
             children: [
 
-              const Icon(
+              Container(
 
-                Icons.power_off,
+                padding:
+                const EdgeInsets.all(8),
 
-                color: Colors.red,
+                decoration: BoxDecoration(
+
+                  color: Colors.green
+                      .withOpacity(.15),
+
+                  shape: BoxShape.circle,
+
+                ),
+
+                child: const Icon(
+
+                  Icons.check_circle,
+
+                  color: Colors.green,
+
+                  size: 22,
+
+                ),
 
               ),
 
               const SizedBox(width: 12),
 
-              const Expanded(
+              Expanded(
 
                 child: Text(
 
@@ -257,7 +282,10 @@ class _HomePageState
 
                   style: TextStyle(
 
-                    color: Colors.white,
+                    color:
+                    Theme.of(context)
+                        .colorScheme
+                        .onSurface,
 
                     fontWeight:
                     FontWeight.w600,
@@ -278,6 +306,7 @@ class _HomePageState
         ),
 
       );
+
     } catch(e){
 
       print(e);
@@ -291,12 +320,38 @@ class _HomePageState
 
   @override
   Widget build(BuildContext context) {
-
+    final lang = AppLocalizations.of(context)!;
     return Scaffold(
 
       backgroundColor:
       Theme.of(context).scaffoldBackgroundColor,
+      floatingActionButton: FloatingActionButton(
 
+        backgroundColor: Colors.orange,
+
+        child: const Icon(
+          Icons.smart_toy,
+          color: Colors.black,
+        ),
+
+        onPressed: () {
+
+          Navigator.push(
+
+            context,
+
+            MaterialPageRoute(
+
+              builder: (_) =>
+              const ChatPage(),
+
+            ),
+
+          );
+
+        },
+
+      ),
       body:
 
       isLoading
@@ -322,7 +377,7 @@ class _HomePageState
 
               Text(
 
-                "Home",
+                lang.home,
 
                 style: TextStyle(
 
@@ -423,7 +478,7 @@ class _HomePageState
                     icon: Icons.home,
                     color: Colors.green,
                   ),
-                  
+
 
                 ],
               ),
@@ -484,9 +539,12 @@ class _HomePageState
 
                           children: [
 
-                            const Icon(
+                             Icon(
                               Icons.power_off,
-                              color: Colors.red,
+                              color: Theme.of(context).brightness ==
+                                  Brightness.dark
+                                  ? Colors.red.withOpacity(0.25)
+                                  : Colors.red.shade100,
                             ),
 
                             const SizedBox(height: 10),
@@ -498,6 +556,7 @@ class _HomePageState
                                 fontSize: 18,
                               ),
                             ),
+
 
                           ],
 
@@ -545,7 +604,7 @@ class _HomePageState
       decoration: BoxDecoration(
 
         color:
-        const Color(0xFF1E1E1E),
+         Theme.of(context).cardColor,
 
         borderRadius:
         BorderRadius.circular(18),
@@ -617,19 +676,13 @@ class _HomePageState
           ),
 
           Text(
-
             title,
-
-            style:
-            TextStyle(
-
-              color:
-              Theme.of(context).textTheme.titleLarge?.color,
-
-              fontSize:12,
-
+            style: TextStyle(
+              color: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.color,
             ),
-
           ),
 
         ],
