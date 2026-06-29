@@ -13,7 +13,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'login_page.dart';
 import 'package:provider/provider.dart';
-import '../../providers/language_provider.dart';
 
 class ProfilePage extends StatefulWidget {
 
@@ -427,65 +426,7 @@ class _ProfilePageState
                   ),
                 ),
 
-                Consumer<LanguageProvider>(
 
-                  builder: (
-                      context,
-                      languageProvider,
-                      child,
-                      ) {
-
-                    return ListTile(
-
-                      leading: const Icon(
-                        Icons.language,
-                      ),
-
-                      title: const Text(
-                        "Language",
-                      ),
-
-                      trailing: DropdownButton<String>(
-
-                        value:
-                        languageProvider
-                            .locale
-                            .languageCode,
-
-                        items: const [
-
-                          DropdownMenuItem(
-                            value: "en",
-                            child: Text(
-                              "English",
-                            ),
-                          ),
-
-                          DropdownMenuItem(
-                            value: "ar",
-                            child: Text(
-                              "العربية",
-                            ),
-                          ),
-
-                        ],
-
-                        onChanged: (value) {
-
-                          languageProvider
-                              .changeLanguage(
-                            value!,
-                          );
-
-                        },
-
-                      ),
-
-                    );
-
-                  },
-
-                ),
                 ElevatedButton(
 
                   style:

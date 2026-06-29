@@ -18,8 +18,7 @@ class AIService {
       String token =
           prefs.getString("token") ?? "";
 
-      Response response =
-      await dio.get(
+      Response response = await dio.get(
 
         "http://64.225.101.222:5000/api/readings/$deviceId",
 
@@ -38,20 +37,28 @@ class AIService {
 
       print(response.data);
 
-      return AIPredictionModel.fromJson(
+      final latest =
+      response.data["latestReading"];
 
-        response.data["ai"]["predict"],
+      if (latest == null) return null;
 
-      );
+      final ai =
+      latest["aiPrediction"];
 
-    } catch(e){
+      if (ai == null) return null;
+      print(ai);
+      return AIPredictionModel.fromJson(ai);
+
+    } catch (e) {
 
       print(e);
 
       return null;
 
     }
+
   }
+
 
   Future<String> getStatus(
       String deviceId) async {
@@ -71,4 +78,5 @@ class AIService {
     }
 
   }
+
 }

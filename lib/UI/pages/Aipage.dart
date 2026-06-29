@@ -36,18 +36,27 @@ class _AIPageState
     loadPrediction();
   }
 
-  Future loadPrediction() async {
+  Future<void> loadPrediction() async {
 
-    prediction =
-    await aiService.getPrediction(
+    print("DEVICE ID => ${widget.deviceId}");
+
+    prediction = await aiService.getPrediction(
       widget.deviceId,
     );
 
-    print(prediction);
+    print("PREDICTION => $prediction");
 
-    setState(() {
-      loading = false;
-    });
+    if (prediction != null) {
+      print("STATUS => ${prediction!.status}");
+      print("STATE => ${prediction!.state}");
+      print("RECOMMENDATION => ${prediction!.recommendation}");
+    }
+
+    if (mounted) {
+      setState(() {
+        loading = false;
+      });
+    }
   }
 
   @override
@@ -72,8 +81,10 @@ class _AIPageState
           : prediction == null
 
           ? const Center(
-        child:
-        Text("No Data"),
+        child: Text(
+          "AI Prediction Not Found",
+          style: TextStyle(fontSize: 18),
+        ),
       )
 
           : Padding(

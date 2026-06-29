@@ -9,7 +9,6 @@ import '../../services/room_service.dart';
 import '../../services/weather_service.dart';
 import '../widets/weather_card.dart';
 import 'chat_page.dart';
-import '../../l10n/app_localizations.dart';
 class HomePage extends StatefulWidget {
 
   const HomePage({super.key});
@@ -320,7 +319,6 @@ class _HomePageState
 
   @override
   Widget build(BuildContext context) {
-    final lang = AppLocalizations.of(context)!;
     return Scaffold(
 
       backgroundColor:
@@ -377,7 +375,7 @@ class _HomePageState
 
               Text(
 
-                lang.home,
+                "home",
 
                 style: TextStyle(
 
