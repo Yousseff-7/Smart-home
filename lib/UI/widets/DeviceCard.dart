@@ -11,7 +11,7 @@ class DeviceCard extends StatefulWidget {
   final bool isOn;
   final String deviceId;
   final Function(bool) onToggle;
-
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const DeviceCard({
@@ -24,6 +24,7 @@ class DeviceCard extends StatefulWidget {
     required this.isOn,
     required this.onToggle,
     required this.onDelete,
+    required this.onEdit,
 
   }) : super(key: key);
 
@@ -121,6 +122,35 @@ class _DeviceCardState
             MainAxisAlignment.spaceBetween,
 
             children: [
+              GestureDetector(
+
+                onTap: widget.onEdit,
+
+                child: Container(
+
+                  padding: const EdgeInsets.all(6),
+
+                  decoration: BoxDecoration(
+
+                    color: Colors.blue.withOpacity(.15),
+
+                    shape: BoxShape.circle,
+
+                  ),
+
+                  child: const Icon(
+
+                    Icons.edit,
+
+                    color: Colors.blue,
+
+                    size: 18,
+
+                  ),
+
+                ),
+
+              ),
 
               /// DELETE
 

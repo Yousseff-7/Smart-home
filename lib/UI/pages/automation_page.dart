@@ -41,58 +41,63 @@ class _AutomationPageState extends State<AutomationPage> {
     loadDevices();
     loadSchedules();
   }
-  Future loadDevices() async {
+  Future<void> loadDevices() async {
 
-    final prefs =
-    await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
 
-    String token =
-        prefs.getString("token") ?? "";
+    String token = prefs.getString("token") ?? "";
 
     try {
 
-      Response roomsResponse =
-      await Dio().get(
+      Response roomsResponse = await Dio().get(
 
         "http://64.225.101.222:5000/api/rooms",
 
         options: Options(
+
           headers: {
-            "Authorization":
-            "bearer $token",
+
+            "Authorization": "bearer $token",
+
           },
+
         ),
+
       );
 
-      List rooms =
-          roomsResponse.data;
+      List rooms = roomsResponse.data;
 
       List allDevices = [];
 
       for (var room in rooms) {
 
-        Response deviceResponse =
-        await Dio().get(
+        Response devicesResponse = await Dio().get(
 
           "http://64.225.101.222:5000/api/devices/${room["_id"]}",
 
           options: Options(
+
             headers: {
-              "Authorization":
-              "bearer $token",
+
+              "Authorization": "bearer $token",
+
             },
+
           ),
+
         );
 
-        for (var device in deviceResponse.data) {
+        for (var device in devicesResponse.data) {
 
-          device["roomName"] =
-          room["name"];
+          device["roomName"] = room["name"];
 
           allDevices.add(device);
 
         }
+
       }
+
+      print("ALL DEVICES = ${allDevices.length}");
 
       setState(() {
 
@@ -102,9 +107,10 @@ class _AutomationPageState extends State<AutomationPage> {
 
     } catch (e) {
 
-      print(e);
+      print("LOAD DEVICES ERROR => $e");
 
     }
+
   }
 
   Future addSchedule() async {
@@ -346,37 +352,45 @@ class _AutomationPageState extends State<AutomationPage> {
 
               const SizedBox(height: 15),
 
-              DropdownButtonFormField(
+              DropdownButtonFormField<String>(
 
-                value: repeatType,
+                isExpanded: true,
 
-                items: const [
+                value: selectedDeviceId,
 
-                  DropdownMenuItem(
-                    value: "daily",
-                    child: Text("Daily"),
-                  ),
+                decoration: inputDecoration(),
 
-                  DropdownMenuItem(
-                    value: "weekly",
-                    child: Text("Weekly"),
-                  ),
+                dropdownColor: Theme.of(context).cardColor,
 
-                  DropdownMenuItem(
-                    value: "once",
-                    child: Text("Once"),
-                  ),
+                items: devices.map<DropdownMenuItem<String>>((device) {
 
-                ],
+                  return DropdownMenuItem<String>(
+
+                    value: device["_id"],
+
+                    child: Text(
+
+                      "${device["roomName"]} - ${device["name"]}",
+
+                      overflow: TextOverflow.ellipsis,
+
+                    ),
+
+                  );
+
+                }).toList(),
 
                 onChanged: (value) {
 
-                  repeatType =
-                      value.toString();
+                  setState(() {
+
+                    selectedDeviceId = value;
+
+                  });
 
                 },
 
-              ),
+              )
             ],
           ),
 
@@ -473,6 +487,8 @@ class _AutomationPageState extends State<AutomationPage> {
     );
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -498,6 +514,8 @@ class _AutomationPageState extends State<AutomationPage> {
 
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+
+
           children: [
 
             Container(
@@ -530,258 +548,416 @@ class _AutomationPageState extends State<AutomationPage> {
                   ),
 
                   const SizedBox(height: 30),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
 
-                  Row(
-                    children: [
+                      final bool isSmall = constraints.maxWidth < 700;
 
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      final double fieldWidth = isSmall
+                          ? constraints.maxWidth
+                          : (constraints.maxWidth - 20) / 2;
 
-                          children: [
+                      return Wrap(
 
-                            Text(
-                              "DEVICE",
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color
-                              ),
-                            ),
+                        spacing: 20,
 
-                            const SizedBox(height: 10),
+                        runSpacing: 20,
 
-                            DropdownButtonFormField<String>(
-                              value: selectedDeviceId,
-                              dropdownColor: Theme.of(context).cardColor,
+                        children: [
 
-                              decoration: inputDecoration(),
+                          /// DEVICE
 
-                              items: devices.map<DropdownMenuItem<String>>((device) {
+                          SizedBox(
 
-                                return DropdownMenuItem<String>(
+                            width: fieldWidth,
 
-                                  value: device["_id"].toString(),
+                            child: Column(
 
-                                  child: Text(
-                                    "${device["roomName"]} - ${device["name"]}",
+                              crossAxisAlignment: CrossAxisAlignment.start,
+
+                              children: [
+
+                                Text(
+
+                                  "DEVICE",
+
+                                  style: TextStyle(
+
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.color,
+
                                   ),
 
-                                );
-
-                              }).toList(),
-
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedDeviceId = value;
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(width: 20),
-
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.start,
-
-                          children: [
-
-                             Text(
-                              "ACTION",
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color
-                              ),
-                            ),
-
-                            const SizedBox(height: 10),
-
-                            DropdownButtonFormField(
-                              value: selectedAction,
-
-                              dropdownColor:
-                               Colors.white24,
-
-                              decoration: inputDecoration(),
-
-                              items: const [
-                                DropdownMenuItem(
-                                  value: "Turn ON",
-                                  child: Text("Turn ON"),
                                 ),
-                                DropdownMenuItem(
-                                  value: "Turn OFF",
-                                  child: Text("Turn OFF"),
+
+                                const SizedBox(height: 10),
+
+                                DropdownButtonFormField<String>(
+
+                                  isExpanded: true,
+
+                                  value: selectedDeviceId,
+
+                                  dropdownColor:
+                                  Theme.of(context).cardColor,
+
+                                  decoration: inputDecoration(),
+
+                                  items: devices.map<DropdownMenuItem<String>>((device) {
+
+                                    return DropdownMenuItem<String>(
+
+                                      value: device["_id"].toString(),
+
+                                      child: Text(
+
+                                        "${device["roomName"]} - ${device["name"]}",
+
+                                        overflow: TextOverflow.ellipsis,
+
+                                      ),
+
+                                    );
+
+                                  }).toList(),
+
+                                  onChanged: (value) {
+
+                                    setState(() {
+
+                                      selectedDeviceId = value;
+
+                                    });
+
+                                  },
+
                                 ),
+
                               ],
 
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedAction =
-                                      value.toString();
-                                });
-                              },
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
+
+                          ),
+
+                          /// ACTION
+
+                          SizedBox(
+
+                            width: fieldWidth,
+
+                            child: Column(
+
+                              crossAxisAlignment: CrossAxisAlignment.start,
+
+                              children: [
+
+                                Text(
+
+                                  "ACTION",
+
+                                  style: TextStyle(
+
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.color,
+
+                                  ),
+
+                                ),
+
+                                const SizedBox(height: 10),
+
+                                DropdownButtonFormField<String>(
+
+                                  isExpanded: true,
+
+                                  value: selectedAction,
+
+                                  dropdownColor:
+                                  Theme.of(context).cardColor,
+
+                                  decoration: inputDecoration(),
+
+                                  items: const [
+
+                                    DropdownMenuItem(
+
+                                      value: "Turn ON",
+
+                                      child: Text("Turn ON"),
+
+                                    ),
+
+                                    DropdownMenuItem(
+
+                                      value: "Turn OFF",
+
+                                      child: Text("Turn OFF"),
+
+                                    ),
+
+                                  ],
+
+                                  onChanged: (value) {
+
+                                    setState(() {
+
+                                      selectedAction = value!;
+
+                                    });
+
+                                  },
+
+                                ),
+
+                              ],
+
+                            ),
+
+                          ),
+
+                        ],
+
+                      );
+
+                    },
+
                   ),
 
-                  const SizedBox(height: 25),
 
-                  Row(
-                    children: [
 
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.start,
 
-                          children: [
 
-                             Text(
-                              "TIME",
-                              style: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.color,
-                              ),
-                            ),
 
-                            const SizedBox(height: 10),
 
-                            GestureDetector(
-                              onTap: pickTime,
 
-                              child: Container(
-                                height: 58,
 
-                                padding:
-                                const EdgeInsets.symmetric(
-                                  horizontal: 16,
+
+
+
+
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+
+                      final bool isSmall = constraints.maxWidth < 700;
+
+                      final double fieldWidth = isSmall
+                          ? constraints.maxWidth
+                          : (constraints.maxWidth - 20) / 2;
+
+                      return Wrap(
+
+                        spacing: 20,
+
+                        runSpacing: 20,
+
+                        children: [
+
+                          /// TIME
+
+                          SizedBox(
+
+                            width: fieldWidth,
+
+                            child: Column(
+
+                              crossAxisAlignment: CrossAxisAlignment.start,
+
+                              children: [
+
+                                Text(
+
+                                  "TIME",
+
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.color,
+                                  ),
+
                                 ),
 
-                                decoration: BoxDecoration(
-                                  color: Colors.orange,
-                                  borderRadius:
-                                  BorderRadius.circular(
-                                    12,
-                                  ),
-                                  border: Border.all(
-                                    color: Colors.white24,
-                                  ),
-                                ),
+                                const SizedBox(height: 10),
 
-                                child: Row(
-                                  children: [
+                                GestureDetector(
 
-                                    Expanded(
-                                      child: Text(
-                                        selectedTime == null
-                                            ? "--:--"
-                                            : selectedTime!
-                                            .format(
-                                          context,
+                                  onTap: pickTime,
+
+                                  child: Container(
+
+                                    height: 58,
+
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
+
+                                    decoration: BoxDecoration(
+
+                                      color: Colors.orange,
+
+                                      borderRadius:
+                                      BorderRadius.circular(12),
+
+                                      border: Border.all(
+                                        color: Colors.white24,
+                                      ),
+
+                                    ),
+
+                                    child: Row(
+
+                                      children: [
+
+                                        Expanded(
+
+                                          child: Text(
+
+                                            selectedTime == null
+                                                ? "--:--"
+                                                : selectedTime!.format(context),
+
+                                            overflow: TextOverflow.ellipsis,
+
+                                            style: TextStyle(
+
+                                              color: Theme.of(context)
+                                                  .textTheme
+                                                  .titleLarge
+                                                  ?.color,
+
+                                            ),
+
+                                          ),
+
                                         ),
-                                        style:
-                                        TextStyle(
+
+                                        Icon(
+
+                                          Icons.access_time,
+
                                           color: Theme.of(context)
                                               .textTheme
-                                              .titleLarge
+                                              .bodyMedium
                                               ?.color,
-                                        )
-                                      ),
+
+                                        ),
+
+                                      ],
+
                                     ),
 
-                                     Icon(
-                                      Icons.access_time,
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.color
-                                    ),
-                                  ],
+                                  ),
+
                                 ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
 
-                      const SizedBox(width: 20),
-
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.start,
-
-                          children: [
-
-                             Text(
-                              "REPEAT",
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color
-                              ),
-                            ),
-
-                            const SizedBox(height: 10),
-
-                            DropdownButtonFormField(
-                              value: selectedRepeat,
-
-                              dropdownColor:
-                              Colors.white24,
-
-                              decoration: inputDecoration(),
-
-                              items: const [
-                                DropdownMenuItem(
-                                  value: "Daily",
-                                  child: Text("Daily"),
-                                ),
-                                DropdownMenuItem(
-                                  value: "Weekly",
-                                  child: Text("Weekly"),
-                                ),
-                                DropdownMenuItem(
-                                  value: "Once",
-                                  child: Text("Once"),
-                                ),
                               ],
 
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedRepeat =
-                                      value.toString();
-                                });
-                              },
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
+
+                          ),
+
+                          /// REPEAT
+
+                          SizedBox(
+
+                            width: fieldWidth,
+
+                            child: Column(
+
+                              crossAxisAlignment: CrossAxisAlignment.start,
+
+                              children: [
+
+                                Text(
+
+                                  "REPEAT",
+
+                                  style: TextStyle(
+
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.color,
+
+                                  ),
+
+                                ),
+
+                                const SizedBox(height: 10),
+
+                                DropdownButtonFormField<String>(
+
+                                  isExpanded: true,
+
+                                  value: selectedRepeat,
+
+                                  dropdownColor:
+                                  Theme.of(context).cardColor,
+
+                                  decoration: inputDecoration(),
+
+                                  items: const [
+
+                                    DropdownMenuItem(
+                                      value: "Daily",
+                                      child: Text("Daily"),
+                                    ),
+
+                                    DropdownMenuItem(
+                                      value: "Weekly",
+                                      child: Text("Weekly"),
+                                    ),
+
+                                    DropdownMenuItem(
+                                      value: "Once",
+                                      child: Text("Once"),
+                                    ),
+
+                                  ],
+
+                                  onChanged: (value) {
+
+                                    setState(() {
+
+                                      selectedRepeat = value!;
+
+                                    });
+
+                                  },
+
+                                ),
+
+                              ],
+
+                            ),
+
+                          ),
+
+                        ],
+
+                      );
+
+                    },
+
                   ),
 
-                  const SizedBox(height: 30),
+SizedBox(height:20 ,),
+
 
                   SizedBox(
-                    width: 220,
+
+                    width: MediaQuery.of(context).size.width < 600
+                        ? double.infinity
+                        : 220,
+
                     height: 55,
 
                     child: ElevatedButton.icon(
+
                       onPressed: () async {
 
                         await addSchedule();
@@ -790,72 +966,132 @@ class _AutomationPageState extends State<AutomationPage> {
 
                       icon: const Icon(Icons.add),
 
-                      label: const Text(
-                        "Add Schedule",
-                        style: TextStyle(
-                          fontSize: 18,
+                      label: FittedBox(
+
+                        child: const Text(
+
+                          "Add Schedule",
+
+                          style: TextStyle(
+                            fontSize: 18,
+                          ),
+
                         ),
+
                       ),
 
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                        Colors.orange,
+
+                        backgroundColor: Colors.orange,
+
                         foregroundColor: Colors.black,
-                        shape:
-                        RoundedRectangleBorder(
-                          borderRadius:
-                          BorderRadius.circular(15),
+
+                        shape: RoundedRectangleBorder(
+
+                          borderRadius: BorderRadius.circular(15),
+
                         ),
+
                       ),
+
                     ),
+
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 30),
 
-            Text(
-              "Your Schedules",
-              style: TextStyle(
-                color: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.color,
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
 
-            const SizedBox(height: 15),
 
-            ...schedules.map(
-                  (schedule) => Card(
-                    color: Theme.of(context).cardColor,
 
-                child: ListTile(
-                  title: Text(
-                    schedule["deviceId"]["name"],
-                    style: TextStyle(
-                      color: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.color,
+        Text(
+          "Your Schedules",
+          style: TextStyle(
+            color: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.color,
+            fontSize:
+            MediaQuery.of(context).size.width < 600
+                ? 22
+                : 26,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+
+        const SizedBox(height: 15),
+
+        ...schedules.map((schedule) {
+
+      return Card(
+
+        color: Theme.of(context).cardColor,
+
+        margin: const EdgeInsets.only(bottom: 12),
+
+        child: Padding(
+
+          padding: const EdgeInsets.all(8),
+
+          child: LayoutBuilder(
+
+            builder: (context, constraints) {
+
+              final bool isSmall =
+                  constraints.maxWidth < 500;
+
+              return isSmall
+
+                  ? Column(
+
+                crossAxisAlignment:
+                CrossAxisAlignment.start,
+
+                children: [
+
+                  ListTile(
+
+                    contentPadding: EdgeInsets.zero,
+
+                    title: Text(
+
+                      schedule["deviceId"]["name"],
+
+                      overflow: TextOverflow.ellipsis,
+
+                      style: TextStyle(
+
+                        color: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.color,
+
+                      ),
+
                     ),
+
+                    subtitle: Text(
+
+                      "${schedule["action"]} • ${schedule["time"]} • ${schedule["repeatType"]}",
+
+                      style: TextStyle(
+
+                        color: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.color,
+
+                      ),
+
+                    ),
+
                   ),
 
-                  subtitle: Text(
-                    "${schedule["action"]} • ${schedule["time"]} • ${schedule["repeatType"]}",
-                    style: TextStyle(
-                      color: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.color,
-                    ),
-                  ),
+                  Row(
 
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment:
+                    MainAxisAlignment.end,
 
                     children: [
 
@@ -868,11 +1104,10 @@ class _AutomationPageState extends State<AutomationPage> {
 
                         onPressed: () {
 
-                          showEditDialog(
-                            schedule,
-                          );
+                          showEditDialog(schedule);
 
                         },
+
                       ),
 
                       IconButton(
@@ -893,31 +1128,40 @@ class _AutomationPageState extends State<AutomationPage> {
                               return AlertDialog(
 
                                 backgroundColor:
-                                Theme.of(context).cardColor,
+                                Theme.of(context)
+                                    .cardColor,
 
                                 title: Text(
 
                                   "Delete Schedule",
 
                                   style: TextStyle(
+
                                     color: Theme.of(context)
                                         .textTheme
                                         .titleLarge
                                         ?.color,
-                                    fontWeight: FontWeight.bold,
+
+                                    fontWeight:
+                                    FontWeight.bold,
+
                                   ),
+
                                 ),
 
                                 content: Text(
 
-                                  " Do you want to continue?",
+                                  "Do you want to continue?",
 
                                   style: TextStyle(
+
                                     color: Theme.of(context)
                                         .textTheme
                                         .bodyMedium
                                         ?.color,
+
                                   ),
+
                                 ),
 
                                 actions: [
@@ -927,29 +1171,30 @@ class _AutomationPageState extends State<AutomationPage> {
                                     onPressed: () {
 
                                       Navigator.pop(
-                                        context,
-                                      );
+                                          context);
 
                                     },
 
                                     child: const Text(
-                                      "Cancel",
-                                    ),
+                                        "Cancel"),
+
                                   ),
 
                                   ElevatedButton(
 
                                     style:
-                                    ElevatedButton.styleFrom(
+                                    ElevatedButton
+                                        .styleFrom(
+
                                       backgroundColor:
                                       Colors.red,
+
                                     ),
 
                                     onPressed: () async {
 
                                       Navigator.pop(
-                                        context,
-                                      );
+                                          context);
 
                                       await deleteSchedule(
                                         schedule["_id"],
@@ -958,25 +1203,215 @@ class _AutomationPageState extends State<AutomationPage> {
                                     },
 
                                     child: const Text(
-                                      "Delete",
-                                    ),
+                                        "Delete"),
+
                                   ),
+
                                 ],
+
                               );
+
                             },
+
                           );
+
                         },
+
                       ),
+
                     ],
+
                   ),
+
+                ],
+
+              )
+
+                  : ListTile(
+
+                title: Text(
+
+                  schedule["deviceId"]["name"],
+
+                  overflow: TextOverflow.ellipsis,
+
+                  style: TextStyle(
+
+                    color: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.color,
+
+                  ),
+
                 ),
-              ),
-            ),
+
+                subtitle: Text(
+
+                  "${schedule["action"]} • ${schedule["time"]} • ${schedule["repeatType"]}",
+
+                  style: TextStyle(
+
+                    color: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.color,
+
+                  ),
+
+                ),
+
+                trailing: Wrap(
+
+                  spacing: 4,
+
+                  children: [
+
+                    IconButton(
+
+                      icon: const Icon(
+                        Icons.edit,
+                        color: Colors.orange,
+                      ),
+
+                      onPressed: () {
+
+                        showEditDialog(schedule);
+
+                      },
+
+                    ),
+
+                    IconButton(
+
+                      icon: const Icon(
+                        Icons.delete,
+                        color: Colors.red,
+                      ),
+
+                      onPressed: () {
+
+                        showDialog(
+
+                          context: context,
+
+                          builder: (context) {
+
+                            return AlertDialog(
+
+                              backgroundColor:
+                              Theme.of(context)
+                                  .cardColor,
+
+                              title: Text(
+
+                                "Delete Schedule",
+
+                                style: TextStyle(
+
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.color,
+
+                                  fontWeight:
+                                  FontWeight.bold,
+
+                                ),
+
+                              ),
+
+                              content: Text(
+
+                                "Do you want to continue?",
+
+                                style: TextStyle(
+
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.color,
+
+                                ),
+
+                              ),
+
+                              actions: [
+
+                                TextButton(
+
+                                  onPressed: () {
+
+                                    Navigator.pop(
+                                        context);
+
+                                  },
+
+                                  child: const Text(
+                                      "Cancel"),
+
+                                ),
+
+                                ElevatedButton(
+
+                                  style:
+                                  ElevatedButton
+                                      .styleFrom(
+
+                                    backgroundColor:
+                                    Colors.red,
+
+                                  ),
+
+                                  onPressed: () async {
+
+                                    Navigator.pop(
+                                        context);
+
+                                    await deleteSchedule(
+                                      schedule["_id"],
+                                    );
+
+                                  },
+
+                                  child: const Text(
+                                      "Delete"),
+
+                                ),
+
+                              ],
+
+                            );
+
+                          },
+
+                        );
+
+                      },
+
+                    ),
+
+                  ],
+
+                ),
+
+              );
+
+            },
+
+          ),
+
+        ),
+
+      );
+
+    }).toList(),
           ],
         ),
       ),
     );
   }
+
 
   InputDecoration inputDecoration() {
     return InputDecoration(

@@ -1,58 +1,55 @@
 import 'package:flutter/material.dart';
-import '../../models/device_model.dart';
-import '../../models/room_model.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../models/device_model.dart';
+import '../../models/room_model.dart';
 import '../../models/weather_model.dart';
+
 import '../../services/device_service.dart';
 import '../../services/room_service.dart';
 import '../../services/weather_service.dart';
+
 import '../widets/weather_card.dart';
 import 'chat_page.dart';
-class HomePage extends StatefulWidget {
 
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() =>
-      _HomePageState();
-
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState
-    extends State<HomePage> {
+class _HomePageState extends State<HomePage> {
+  final RoomService roomService = RoomService();
 
-  final RoomService roomService =
-  RoomService();
+  final DeviceService deviceService = DeviceService();
 
-  final DeviceService deviceService =
-  DeviceService();
-  final WeatherService weatherService =
-  WeatherService();
+  final WeatherService weatherService = WeatherService();
 
   WeatherModel? weather;
 
   bool isLoading = true;
 
   int roomsCount = 0;
+
   int devicesCount = 0;
 
   double totalPower = 0;
+  String userName = "";
   List<DeviceModel> allDevices = [];
 
   @override
   void initState() {
     super.initState();
+    loadUserName();
     loadData();
+
     loadWeather();
-
-
   }
 
   Future loadData() async {
-
     try {
-
       List<RoomModel> rooms =
       await roomService.getRooms();
 
@@ -60,60 +57,65 @@ class _HomePageState
 
       allDevices.clear();
 
-      for(var room in rooms){
-
+      for (var room in rooms) {
         List<DeviceModel> devices =
         await deviceService.getDevices(
           room.id!,
         );
 
         allDevices.addAll(devices);
-
       }
 
-      devicesCount =
-          allDevices.length;
+      devicesCount = allDevices.length;
 
-      totalPower =
-          allDevices
-              .where(
-                (e)=>e.state=="on",
-          )
-              .length * 10;
+      totalPower = allDevices
+          .where(
+            (e) => e.state == "on",
+      )
+          .length *
+          10;
+
       weather =
       await weatherService.getWeather();
-    } catch(e){
-
+    } catch (e) {
       print(e);
-
     }
+
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+  Future<void> loadUserName() async {
+
+    final prefs = await SharedPreferences.getInstance();
 
     setState(() {
 
-      isLoading = false;
+      userName = prefs.getString("name") ?? "User";
 
     });
 
   }
   Future<void> loadWeather() async {
-
     try {
-
       WeatherModel result =
       await weatherService.getWeather();
 
       print("CITY = ${result.city}");
+
       print("TEMP = ${result.temperature}");
 
-      setState(() {
-        weather = result;
-      });
-
+      if (mounted) {
+        setState(() {
+          weather = result;
+        });
+      }
     } catch (e) {
-
       print("WEATHER ERROR");
-      print(e);
 
+      print(e);
     }
   }
   Future<void> turnAllOff() async {
@@ -319,17 +321,39 @@ class _HomePageState
 
   @override
   Widget build(BuildContext context) {
+
+    final size = MediaQuery.of(context).size;
+
+    final width = size.width;
+
+    final isMobile = width < 600;
+
+    final isTablet = width >= 600 && width < 1000;
+
+    final horizontalPadding =
+    isMobile ? 20.0 : isTablet ? 28.0 : 40.0;
+
+    final gridCount =
+    isMobile ? 2 : isTablet ? 3 : 4;
+
+    final weatherSpacing =
+    isMobile ? 20.0 : 28.0;
+
     return Scaffold(
 
       backgroundColor:
       Theme.of(context).scaffoldBackgroundColor,
+
       floatingActionButton: FloatingActionButton(
 
         backgroundColor: Colors.orange,
 
         child: const Icon(
+
           Icons.smart_toy,
+
           color: Colors.black,
+
         ),
 
         onPressed: () {
@@ -340,8 +364,7 @@ class _HomePageState
 
             MaterialPageRoute(
 
-              builder: (_) =>
-              const ChatPage(),
+              builder: (_) => const ChatPage(),
 
             ),
 
@@ -350,229 +373,367 @@ class _HomePageState
         },
 
       ),
-      body:
 
-      isLoading
+      body: isLoading
 
           ? const Center(
-        child:
-        CircularProgressIndicator(),
+
+        child: CircularProgressIndicator(),
+
       )
 
           : SafeArea(
 
-        child: SingleChildScrollView(
+        child: LayoutBuilder(
 
-          padding:
-          const EdgeInsets.all(20),
+          builder: (context, constraints) {
 
-          child: Column(
+            return SingleChildScrollView(
 
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
+              padding: EdgeInsets.symmetric(
 
-            children: [
+                horizontal: horizontalPadding,
 
-              Text(
+                vertical: 20,
 
-                "home",
+              ),
 
-                style: TextStyle(
+              child: ConstrainedBox(
 
-                  fontSize: 26,
+                constraints: BoxConstraints(
 
-                  fontWeight:
-                  FontWeight.bold,
-
-                  color:
-                  Theme.of(context).textTheme.titleLarge?.color,
+                  minHeight: constraints.maxHeight,
 
                 ),
 
-              ),
+                child: Column(
 
-              const SizedBox(
-                  height: 25
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
 
-                   Text(
-                    "Welcome Marwa 👋",
-                    style: TextStyle(
-                      color:Theme.of(context).textTheme.titleLarge?.color,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
+                  children: [
+
+                    Text(
+
+                      "Home",
+
+                      style: TextStyle(
+
+                        fontSize:
+                        isMobile ? 26 : 32,
+
+                        fontWeight:
+                        FontWeight.bold,
+
+                        color: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.color,
+
+                      ),
+
                     ),
-                  ),
 
-                  const SizedBox(height: 5),
-
-                  Text(
-                    "Manage your smart home easily",
-                    style: TextStyle(
-                      color:Theme.of(context).textTheme.bodyMedium?.color,
-                      fontSize: 14,
+                    SizedBox(
+                      height: weatherSpacing,
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Text(
-                "Today's Weather",
-                style: TextStyle(
-                  color:Theme.of(context).textTheme.titleLarge?.color,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
 
-              const SizedBox(height: 12),
-              weather == null
-                  ? Text(
-                "Loading Weather...",
-                style: TextStyle(
-                  color:Theme.of(context).textTheme.titleLarge?.color,
-                ),
-              )
-                  : WeatherCard(
-                weather: weather!,
-              ),
+                    Text(
 
-              const SizedBox(height: 25),
-              const SizedBox(height: 25),
+                      "Welcome $userName 👋",
 
-              GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
+                      style: TextStyle(
 
-                crossAxisCount: 2,
+                        fontSize:
+                        isMobile ? 22 : 28,
 
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+                        fontWeight:
+                        FontWeight.bold,
 
-                childAspectRatio: 1.4,
+                        color: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.color,
 
-                children: [
+                      ),
 
-                  _statusCard(
-                    title: "Power",
-                    value: "${totalPower.toStringAsFixed(1)} W",
-                    icon: Icons.bolt,
-                    color: Colors.orange,
-                  ),
+                    ),
 
-                  _statusCard(
-                    title: "Devices",
-                    value: "$devicesCount",
-                    icon: Icons.devices,
-                    color: Colors.blue,
-                  ),
+                    const SizedBox(height: 6),
 
-                  _statusCard(
-                    title: "Rooms",
-                    value: "$roomsCount",
-                    icon: Icons.home,
-                    color: Colors.green,
-                  ),
+                    Text(
 
+                      "Manage your smart home easily",
 
-                ],
-              ),
-              const SizedBox(
-                  height:30
-              ),
+                      style: TextStyle(
 
-              Text(
+                        fontSize:
+                        isMobile ? 14 : 16,
 
-                "Quick Actions",
+                        color: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.color,
 
-                style: TextStyle(
+                      ),
 
-                  color:
-                  Theme.of(context).textTheme.titleLarge?.color,
+                    ),
 
-                  fontSize:18,
+                    SizedBox(
+                      height: weatherSpacing,
+                    ),
 
-                  fontWeight:
-                  FontWeight.bold,
+                    Text(
 
-                ),
+                      "Today's Weather",
 
-              ),
+                      style: TextStyle(
 
-              const SizedBox(
-                  height:15
-              ),
+                        fontSize:
+                        isMobile ? 18 : 22,
 
-              Row(
-                children: [
+                        fontWeight:
+                        FontWeight.bold,
 
-                  Expanded(
-                    child: GestureDetector(
+                        color: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.color,
 
-                      onTap: () async {
+                      ),
 
-                        await turnAllOff();
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    weather == null
+
+                        ? Text(
+
+                      "Loading Weather...",
+
+                      style: TextStyle(
+
+                        color: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.color,
+
+                      ),
+
+                    )
+
+                        : WeatherCard(
+
+                      weather: weather!,
+
+                    ),
+
+                    SizedBox(
+                      height: weatherSpacing,
+                    ),
+
+                    GridView.builder(
+
+                      shrinkWrap: true,
+
+                      physics:
+                      const NeverScrollableScrollPhysics(),
+
+                      itemCount: 3,
+
+                      gridDelegate:
+
+                      SliverGridDelegateWithFixedCrossAxisCount(
+
+                        crossAxisCount: gridCount,
+
+                        crossAxisSpacing: 12,
+
+                        mainAxisSpacing: 12,
+
+                        childAspectRatio:
+                        isMobile ? 1.35 : 1.5,
+
+                      ),
+
+                      itemBuilder: (context, index) {
+
+                        switch (index) {
+
+                          case 0:
+
+                            return _statusCard(
+
+                              title: "Power",
+
+                              value:
+                              "${totalPower.toStringAsFixed(1)} W",
+
+                              icon: Icons.bolt,
+
+                              color: Colors.orange,
+
+                            );
+
+                          case 1:
+
+                            return _statusCard(
+
+                              title: "Devices",
+
+                              value: "$devicesCount",
+
+                              icon: Icons.devices,
+
+                              color: Colors.blue,
+
+                            );
+
+                          default:
+
+                            return _statusCard(
+
+                              title: "Rooms",
+
+                              value: "$roomsCount",
+
+                              icon: Icons.home,
+
+                              color: Colors.green,
+
+                            );
+
+                        }
 
                       },
 
-                      child: Container(
+                    ),
 
-                        height: 90,
+                    SizedBox(
+                      height: weatherSpacing,
+                    ),
 
-                        decoration: BoxDecoration(
+                    Text(
 
-                          color: Colors.red.withOpacity(0.3),
+                      "Quick Actions",
 
-                          borderRadius: BorderRadius.circular(20),
+                      style: TextStyle(
 
-                        ),
+                        fontSize:
+                        isMobile ? 18 : 22,
 
-                        child: Column(
+                        fontWeight:
+                        FontWeight.bold,
 
-                          mainAxisAlignment:
-                          MainAxisAlignment.center,
+                        color: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.color,
 
-                          children: [
+                      ),
 
-                             Icon(
-                              Icons.power_off,
-                              color: Theme.of(context).brightness ==
-                                  Brightness.dark
-                                  ? Colors.red.withOpacity(0.25)
-                                  : Colors.red.shade100,
-                            ),
+                    ),
 
-                            const SizedBox(height: 10),
+                    const SizedBox(height: 15),
 
-                            Text(
-                              "All Off",
-                              style: TextStyle(
-                                color: Theme.of(context).textTheme.titleLarge?.color,
-                                fontSize: 18,
+                    SizedBox(
+
+                      width: double.infinity,
+
+                      child: GestureDetector(
+
+                        onTap: () async {
+
+                          await turnAllOff();
+
+                        },
+
+                        child: Container(
+
+                          constraints:
+
+                          const BoxConstraints(
+
+                            minHeight: 90,
+
+                          ),
+
+                          decoration:
+
+                          BoxDecoration(
+
+                            color: Colors.red
+                                .withOpacity(.3),
+
+                            borderRadius:
+                            BorderRadius.circular(20),
+
+                          ),
+
+                          child: Column(
+
+                            mainAxisAlignment:
+                            MainAxisAlignment.center,
+
+                            children: [
+
+                              Icon(
+
+                                Icons.power_off,
+
+                                color: Theme.of(context)
+                                    .brightness ==
+                                    Brightness.dark
+
+                                    ? Colors.red
+                                    .withOpacity(.25)
+
+                                    : Colors.red.shade100,
+
                               ),
-                            ),
 
+                              const SizedBox(height: 10),
 
-                          ],
+                              Text(
+
+                                "All Off",
+
+                                style: TextStyle(
+
+                                  fontSize:
+                                  isMobile ? 18 : 22,
+
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.color,
+
+                                ),
+
+                              ),
+
+                            ],
+
+                          ),
 
                         ),
 
                       ),
 
                     ),
-                  ),
 
-                ],
-              )
+                    const SizedBox(height: 30),
 
+                  ],
 
+                ),
 
-            ],
+              ),
 
-          ),
+            );
+
+          },
 
         ),
 
@@ -581,7 +742,6 @@ class _HomePageState
     );
 
   }
-
   Widget _statusCard({
 
     required String title,
@@ -594,93 +754,121 @@ class _HomePageState
 
   }) {
 
+    final width = MediaQuery.of(context).size.width;
+
+    final isMobile = width < 600;
+
     return Container(
 
-      padding:
-      const EdgeInsets.all(14),
+      padding: EdgeInsets.all(
+        isMobile ? 14 : 18,
+      ),
 
       decoration: BoxDecoration(
 
-        color:
-         Theme.of(context).cardColor,
+        color: Theme.of(context).cardColor,
 
-        borderRadius:
-        BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(18),
 
       ),
 
       child: Column(
 
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
 
-        children:[
+        mainAxisAlignment: MainAxisAlignment.center,
+
+        children: [
 
           Container(
 
-            padding:
-            const EdgeInsets.all(8),
+            padding: EdgeInsets.all(
+              isMobile ? 8 : 10,
+            ),
 
-            decoration:
-            BoxDecoration(
+            decoration: BoxDecoration(
 
-              color:
-              color.withOpacity(0.2),
+              color: color.withOpacity(.2),
 
-              borderRadius:
-              BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(10),
 
             ),
 
-            child:
-
-            Icon(
+            child: Icon(
 
               icon,
 
-              color:color,
+              color: color,
 
-              size:18,
-
-            ),
-
-          ),
-
-          const SizedBox(
-              height:12
-          ),
-
-          Text(
-
-            value,
-
-            style:
-            TextStyle(
-
-              fontSize:18,
-
-              fontWeight:
-              FontWeight.bold,
-
-              color:
-              Theme.of(context).textTheme.titleLarge?.color,
+              size: isMobile ? 18 : 22,
 
             ),
 
           ),
 
-          const SizedBox(
-              height:4
+          SizedBox(
+            height: isMobile ? 12 : 16,
           ),
 
-          Text(
-            title,
-            style: TextStyle(
-              color: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.color,
+          FittedBox(
+
+            fit: BoxFit.scaleDown,
+
+            alignment: Alignment.centerLeft,
+
+            child: Text(
+
+              value,
+
+              maxLines: 1,
+
+              style: TextStyle(
+
+                fontSize:
+                isMobile ? 18 : 24,
+
+                fontWeight:
+                FontWeight.bold,
+
+                color: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.color,
+
+              ),
+
             ),
+
+          ),
+
+          const SizedBox(height: 4),
+
+          FittedBox(
+
+            fit: BoxFit.scaleDown,
+
+            alignment: Alignment.centerLeft,
+
+            child: Text(
+
+              title,
+
+              maxLines: 1,
+
+              style: TextStyle(
+
+                fontSize:
+                isMobile ? 13 : 15,
+
+                color: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.color,
+
+              ),
+
+            ),
+
           ),
 
         ],
@@ -699,57 +887,75 @@ class _HomePageState
 
       Color color,
 
-      ){
+      ) {
+
+    final width = MediaQuery.of(context).size.width;
+
+    final isMobile = width < 600;
 
     return Container(
 
-      padding:
+      padding: EdgeInsets.symmetric(
 
-      const EdgeInsets.symmetric(
+        vertical: isMobile ? 14 : 18,
 
-        vertical:14,
+        horizontal: 12,
 
       ),
 
-      decoration:
+      decoration: BoxDecoration(
 
-      BoxDecoration(
+        color: color.withOpacity(.2),
 
-        color:
-
-        color.withOpacity(0.2),
-
-        borderRadius:
-
-        BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(15),
 
       ),
 
       child: Column(
 
-        children:[
+        mainAxisAlignment: MainAxisAlignment.center,
+
+        children: [
 
           Icon(
 
             icon,
 
-            color:color,
+            color: color,
+
+            size: isMobile ? 24 : 30,
 
           ),
 
-          const SizedBox(
-              height:6
+          SizedBox(
+            height: isMobile ? 8 : 10,
           ),
 
-          Text(
+          Flexible(
 
-            title,
+            child: FittedBox(
 
-            style:
-            TextStyle(
+              fit: BoxFit.scaleDown,
 
-              color:
-              Theme.of(context).textTheme.titleLarge?.color,
+              child: Text(
+
+                title,
+
+                textAlign: TextAlign.center,
+
+                style: TextStyle(
+
+                  fontSize:
+                  isMobile ? 14 : 16,
+
+                  color: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.color,
+
+                ),
+
+              ),
 
             ),
 

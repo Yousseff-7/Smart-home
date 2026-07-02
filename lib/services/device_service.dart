@@ -109,6 +109,38 @@ class DeviceService {
 
   }
 
+  Future updateDevice(
+      String id,
+      String name,
+      String image,
+      ) async {
+
+    String token = await getToken();
+
+    await dio.put(
+
+      "/devices/$id",
+
+      data: {
+
+        "name": name,
+        "image": image,
+
+      },
+
+      options: Options(
+
+        headers: {
+
+          "Authorization": "bearer $token",
+
+        },
+
+      ),
+
+    );
+
+  }
   Future updateState(
       String id,
       String state,
@@ -130,8 +162,7 @@ class DeviceService {
 
         headers: {
 
-          "Authorization":
-          "bearer $token",
+          "Authorization": "bearer $token",
 
         },
 
@@ -140,5 +171,25 @@ class DeviceService {
     );
 
   }
+  Future<List<dynamic>> getAllDevices() async {
 
+    String token = await getToken();
+
+    Response response = await dio.get(
+
+      "/devices",
+
+      options: Options(
+
+        headers: {
+          "Authorization": "bearer $token",
+        },
+
+      ),
+
+    );
+
+    return List<dynamic>.from(response.data);
+
+  }
 }

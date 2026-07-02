@@ -31,8 +31,77 @@ class _DynamicDevicesPageState
   DeviceService();
 
   List<DeviceModel> devices = [];
+  final List<String> deviceNames = [
+
+    "Smart TV",
+
+    "Smart Lamp",
+
+    "Smart Fan",
+
+    "Smart Kettle",
+
+    "Smart Microwave",
+
+    "Smart Toaster",
+
+    "Smart Coffee Maker",
+
+    "Smart Speaker",
+
+    "Smart Laptop Charger",
+
+  ];
 
   bool isLoading = true;
+  final List<Map<String, String>> deviceTypes = [
+
+    {
+      "name": "Smart TV",
+      "image": "assets/images/tv.png",
+    },
+
+    {
+      "name": "Smart Lamp",
+      "image": "assets/images/lamp.png",
+    },
+
+    {
+      "name": "Smart Fan",
+      "image": "assets/images/fan2.png",
+    },
+
+    {
+      "name": "Smart Kettle",
+      "image": "assets/images/kettle.png",
+    },
+
+    {
+      "name": "Smart Microwave",
+      "image": "assets/images/microwave.png",
+    },
+
+    {
+      "name": "Smart Toaster",
+      "image": "assets/images/toaster.png",
+    },
+
+    {
+      "name": "Smart Coffee Maker",
+      "image": "assets/images/coffee.png",
+    },
+
+    {
+      "name": "Smart Speaker",
+      "image": "assets/images/speaker.png",
+    },
+
+    {
+      "name": "Smart Laptop Charger",
+      "image": "assets/images/charger.png",
+    },
+
+  ];
 
   @override
   void initState() {
@@ -63,6 +132,128 @@ class _DynamicDevicesPageState
     setState(() {
       isLoading = false;
     });
+  }
+  void showEditDialog(DeviceModel device) {
+
+    Map<String, String>? selected =
+    deviceTypes.firstWhere(
+
+          (e) => e["name"] == device.name,
+
+      orElse: () => deviceTypes.first,
+
+    );
+
+    showDialog(
+
+      context: context,
+
+      builder: (_) {
+
+        return StatefulBuilder(
+
+          builder: (context, setDialog) {
+
+            return AlertDialog(
+
+              backgroundColor:
+              const Color(0xFF1E1E1E),
+
+              title: const Text(
+
+                "Edit Device",
+
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+
+              ),
+
+              content: DropdownButtonFormField<Map<String, String>>(
+
+                value: selected,
+
+                dropdownColor:
+                const Color(0xFF1E1E1E),
+
+                style: const TextStyle(
+                  color: Colors.white,
+                ),
+
+                items: deviceTypes.map((item) {
+
+                  return DropdownMenuItem(
+
+                    value: item,
+
+                    child: Text(item["name"]!),
+
+                  );
+
+                }).toList(),
+
+                onChanged: (value) {
+
+                  setDialog(() {
+
+                    selected = value;
+
+                  });
+
+                },
+
+              ),
+
+              actions: [
+
+                TextButton(
+
+                  onPressed: () {
+
+                    Navigator.pop(context);
+
+                  },
+
+                  child: const Text("Cancel"),
+
+                ),
+
+                ElevatedButton(
+
+                  onPressed: () async {
+
+                    await service.updateDevice(
+
+                      device.id!,
+
+                      selected!["name"]!,
+
+                      selected!["image"]!,
+
+                    );
+
+                    Navigator.pop(context);
+
+                    loadDevices();
+
+                  },
+
+                  child: const Text("Save"),
+
+                ),
+
+              ],
+
+            );
+
+          },
+
+        );
+
+      },
+
+    );
+
   }
 
   @override
@@ -154,7 +345,15 @@ class _DynamicDevicesPageState
                 val ? "on" : "off",
               );
 
-            }, onDelete: () {  },
+            }, onEdit: () {
+
+            showEditDialog(device);
+
+          },
+
+              onDelete: () {
+
+              },
 
           );
         },
@@ -186,8 +385,7 @@ class _DynamicDevicesPageState
 
   void showAddDialog() {
 
-    TextEditingController controller =
-    TextEditingController();
+    String? selectedDevice;
 
     showDialog(
 
@@ -195,108 +393,131 @@ class _DynamicDevicesPageState
 
       builder: (_) {
 
-        return AlertDialog(
+        return StatefulBuilder(
 
-          backgroundColor:
-          const Color(0xFF1E1E1E),
+          builder: (context, setDialog) {
 
-          title: const Text(
+            return AlertDialog(
 
-            "Add Device",
+              backgroundColor: const Color(0xFF1E1E1E),
 
-            style: TextStyle(
-              color: Colors.white,
-            ),
+              title: const Text(
 
-          ),
+                "Add Device",
 
-          content: TextField(
-
-            controller: controller,
-
-            style: const TextStyle(
-              color: Colors.white,
-            ),
-
-            decoration:
-            InputDecoration(
-
-              hintText:
-              "Device Name",
-
-              hintStyle:
-              const TextStyle(
-                color: Colors.white54,
-              ),
-
-              filled: true,
-
-              fillColor:
-              Colors.black26,
-
-              border:
-              OutlineInputBorder(
-
-                borderRadius:
-                BorderRadius.circular(12),
+                style: TextStyle(
+                  color: Colors.white,
+                ),
 
               ),
 
-            ),
+              content: DropdownButtonFormField<String>(
 
-          ),
+                value: selectedDevice,
 
-          actions: [
+                dropdownColor: const Color(0xFF1E1E1E),
 
-            TextButton(
+                style: const TextStyle(
+                  color: Colors.white,
+                ),
 
-              onPressed: () {
+                decoration: InputDecoration(
 
-                Navigator.pop(context);
+                  filled: true,
 
-              },
+                  fillColor: Colors.black26,
 
-              child: const Text(
-                "Cancel",
+                  border: OutlineInputBorder(
+
+                    borderRadius:
+                    BorderRadius.circular(12),
+
+                  ),
+
+                ),
+
+                hint: const Text(
+
+                  "Choose Device",
+
+                  style: TextStyle(
+                    color: Colors.white54,
+                  ),
+
+                ),
+
+                items: deviceNames.map((device) {
+
+                  return DropdownMenuItem(
+
+                    value: device,
+
+                    child: Text(device),
+
+                  );
+
+                }).toList(),
+
+                onChanged: (value) {
+
+                  setDialog(() {
+
+                    selectedDevice = value;
+
+                  });
+
+                },
+
               ),
+              
+              
+              
 
-            ),
+              actions: [
 
-            ElevatedButton(
+                TextButton(
 
-              onPressed: () async {
+                  onPressed: () {
 
-                if(controller.text
-                    .trim()
-                    .isEmpty) return;
+                    Navigator.pop(context);
 
-                DeviceModel device =
-                DeviceModel(
+                  },
 
-                  name:
-                  controller.text,
+                  child: const Text("Cancel"),
 
-                  roomId:
-                  widget.roomId,
+                ),
 
-                );
+                ElevatedButton(
 
-                await service.addDevice(
-                  device,
-                );
+                  onPressed: () async {
 
-                Navigator.pop(context);
+                    if (selectedDevice == null) return;
 
-                loadDevices();
+                    DeviceModel device = DeviceModel(
 
-              },
+                      name: selectedDevice!,
 
-              child:
-              const Text("Add"),
+                      roomId: widget.roomId,
 
-            ),
+                    );
 
-          ],
+                    await service.addDevice(device);
+
+                    Navigator.pop(context);
+
+                    loadDevices();
+
+                  },
+
+                  child: const Text("Add"),
+
+                ),
+
+              ],
+
+            );
+
+          },
 
         );
 
@@ -309,37 +530,42 @@ class _DynamicDevicesPageState
 }
 String getDeviceImage(String name) {
 
-  String device =
-  name.toLowerCase();
+  String device = name.toLowerCase();
 
-  if(device.contains("lamp")) {
-
+  if (device.contains("lamp")) {
     return "assets/images/lamp.png";
-
   }
 
-  else if(device.contains("tv")) {
-
+  if (device.contains("tv")) {
     return "assets/images/tv.png";
-
   }
 
-  else if(device.contains("fan")) {
-
+  if (device.contains("fan")) {
     return "assets/images/fan2.png";
-
   }
 
-  else if(device.contains("heater")) {
-
-    return "assets/images/heater.png";
-
+  if (device.contains("kettle")) {
+    return "assets/images/kettle.png";
   }
 
-  else if(device.contains("ac")) {
+  if (device.contains("microwave")) {
+    return "assets/images/microwave.png";
+  }
 
-    return "assets/images/smartac.png";
+  if (device.contains("toaster")) {
+    return "assets/images/toaster.png";
+  }
 
+  if (device.contains("coffee")) {
+    return "assets/images/coffee.png";
+  }
+
+  if (device.contains("speaker")) {
+    return "assets/images/speaker.png";
+  }
+
+  if (device.contains("charger")) {
+    return "assets/images/charger.png";
   }
 
   return "assets/images/lamp.png";

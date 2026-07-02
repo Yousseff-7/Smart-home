@@ -31,7 +31,7 @@ class LoginCubit extends Cubit<LoginStates> {
       await prefs.setString("token", token);
       await prefs.setString(
         "name",
-        response.data["user"]["name"],
+        response.data["name"],
       );
 
       await prefs.setString(
