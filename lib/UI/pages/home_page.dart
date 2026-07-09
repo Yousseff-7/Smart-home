@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../models/device_model.dart';
 import '../../models/room_model.dart';
 import '../../models/weather_model.dart';
-
 import '../../services/device_service.dart';
 import '../../services/room_service.dart';
 import '../../services/weather_service.dart';
-
 import '../widets/weather_card.dart';
 import 'chat_page.dart';
 
@@ -50,33 +47,23 @@ class _HomePageState extends State<HomePage> {
 
   Future loadData() async {
     try {
-      List<RoomModel> rooms =
-      await roomService.getRooms();
+      List<RoomModel> rooms = await roomService.getRooms();
 
       roomsCount = rooms.length;
 
       allDevices.clear();
 
       for (var room in rooms) {
-        List<DeviceModel> devices =
-        await deviceService.getDevices(
-          room.id!,
-        );
+        List<DeviceModel> devices = await deviceService.getDevices(room.id!);
 
         allDevices.addAll(devices);
       }
 
       devicesCount = allDevices.length;
 
-      totalPower = allDevices
-          .where(
-            (e) => e.state == "on",
-      )
-          .length *
-          10;
+      totalPower = allDevices.where((e) => e.state == "on").length * 10;
 
-      weather =
-      await weatherService.getWeather();
+      weather = await weatherService.getWeather();
     } catch (e) {
       print(e);
     }
@@ -87,6 +74,7 @@ class _HomePageState extends State<HomePage> {
       });
     }
   }
+
   Future<void> loadUserName() async {
 
     final prefs = await SharedPreferences.getInstance();
@@ -98,10 +86,10 @@ class _HomePageState extends State<HomePage> {
     });
 
   }
+
   Future<void> loadWeather() async {
     try {
-      WeatherModel result =
-      await weatherService.getWeather();
+      WeatherModel result = await weatherService.getWeather();
 
       print("CITY = ${result.city}");
 
@@ -118,632 +106,500 @@ class _HomePageState extends State<HomePage> {
       print(e);
     }
   }
+
   Future<void> turnAllOff() async {
-
     try {
+      final prefs = await SharedPreferences.getInstance();
 
-      final prefs =
-      await SharedPreferences.getInstance();
-
-      String token =
-          prefs.getString("token") ?? "";
+      String token = prefs.getString("token") ?? "";
 
       final dio = Dio();
 
       /// ================= GET ROOMS =================
 
-      Response roomsResponse =
-      await dio.get(
-
+      Response roomsResponse = await dio.get(
         "http://64.225.101.222:5000/api/rooms",
 
-        options: Options(
-
-          headers: {
-
-            "Authorization":
-            "bearer $token",
-
-          },
-
-        ),
-
+        options: Options(headers: {"Authorization": "bearer $token"}),
       );
 
-      List rooms =
-          roomsResponse.data;
+      List rooms = roomsResponse.data;
 
       /// ================= LOOP ROOMS =================
 
-      for(var room in rooms){
-
-        String roomId =
-        room["_id"];
+      for (var room in rooms) {
+        String roomId = room["_id"];
 
         /// ================= GET DEVICES =================
 
-        Response devicesResponse =
-        await dio.get(
-
+        Response devicesResponse = await dio.get(
           "http://64.225.101.222:5000/api/devices/$roomId",
 
-          options: Options(
-
-            headers: {
-
-              "Authorization":
-              "bearer $token",
-
-            },
-
-          ),
-
+          options: Options(headers: {"Authorization": "bearer $token"}),
         );
 
-        List devices =
-            devicesResponse.data;
+        List devices = devicesResponse.data;
 
         /// ================= TURN OFF =================
 
-        for(var device in devices){
-
-          String deviceId =
-          device["_id"];
+        for (var device in devices) {
+          String deviceId = device["_id"];
 
           await dio.put(
-
             "http://64.225.101.222:5000/api/devices/$deviceId/state",
 
-            data: {
+            data: {"state": "off"},
 
-              "state": "off",
-
-            },
-
-            options: Options(
-
-              headers: {
-
-                "Authorization":
-                "bearer $token",
-
-              },
-
-            ),
-
+            options: Options(headers: {"Authorization": "bearer $token"}),
           );
-
         }
-
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-
         SnackBar(
-
           behavior: SnackBarBehavior.floating,
 
           margin: const EdgeInsets.all(20),
 
           elevation: 10,
 
-          backgroundColor:
-
-          Theme.of(context).brightness ==
-              Brightness.dark
-
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
               ? const Color(0xFF1E1E1E)
-
               : Colors.white,
 
           shape: RoundedRectangleBorder(
-
-            borderRadius:
-            BorderRadius.circular(18),
-
+            borderRadius: BorderRadius.circular(18),
           ),
 
           content: Row(
-
             children: [
-
               Container(
+                constraints: const BoxConstraints(minHeight: 150),
 
-                padding:
-                const EdgeInsets.all(8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 20,
+                ),
 
                 decoration: BoxDecoration(
-
-                  color: Colors.green
-                      .withOpacity(.15),
+                  color: Colors.green.withOpacity(.15),
 
                   shape: BoxShape.circle,
-
                 ),
 
                 child: const Icon(
-
                   Icons.check_circle,
 
                   color: Colors.green,
 
                   size: 22,
-
                 ),
-
               ),
 
               const SizedBox(width: 12),
 
               Expanded(
-
                 child: Text(
-
                   "All devices turned off successfully",
 
                   style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
 
-                    color:
-                    Theme.of(context)
-                        .colorScheme
-                        .onSurface,
-
-                    fontWeight:
-                    FontWeight.w600,
-
+                    fontWeight: FontWeight.w600,
                   ),
-
                 ),
-
               ),
-
             ],
-
           ),
 
-          duration:
-          const Duration(seconds: 2),
-
+          duration: const Duration(seconds: 2),
         ),
-
       );
-
-    } catch(e){
-
+    } catch (e) {
       print(e);
-
     }
-
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
-
     final size = MediaQuery.of(context).size;
-
     final width = size.width;
-
     final isMobile = width < 600;
 
     final isTablet = width >= 600 && width < 1000;
 
-    final horizontalPadding =
-    isMobile ? 20.0 : isTablet ? 28.0 : 40.0;
+    final horizontalPadding = isMobile
+        ? 20.0
+        : isTablet
+        ? 28.0
+        : 40.0;
 
-    final gridCount =
-    isMobile ? 2 : isTablet ? 3 : 4;
+    final gridCount = isMobile
+        ? 2
+        : isTablet
+        ? 3
+        : 4;
 
-    final weatherSpacing =
-    isMobile ? 20.0 : 28.0;
+    final weatherSpacing = isMobile ? 20.0 : 28.0;
 
     return Scaffold(
-
-      backgroundColor:
-      Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       floatingActionButton: FloatingActionButton(
-
+        tooltip: "AI Assistant",
+        heroTag: "aiAssistant",
         backgroundColor: Colors.orange,
 
-        child: const Icon(
-
-          Icons.smart_toy,
-
-          color: Colors.black,
-
-        ),
+        child: const Icon(Icons.smart_toy, color: Colors.black),
 
         onPressed: () {
-
           Navigator.push(
-
             context,
 
-            MaterialPageRoute(
-
-              builder: (_) => const ChatPage(),
-
-            ),
-
+            MaterialPageRoute(builder: (_) => const ChatPage()),
           );
-
         },
-
       ),
 
-      body: isLoading
+    body: isLoading
+    ? const Center(child: CircularProgressIndicator())
+        : RefreshIndicator(
 
-          ? const Center(
+    onRefresh: () async {
 
-        child: CircularProgressIndicator(),
+    await loadData();
 
-      )
+    await loadWeather();
 
-          : SafeArea(
+    },
 
-        child: LayoutBuilder(
+    child: SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
 
-          builder: (context, constraints) {
+                      vertical: 20,
+                    ),
 
-            return SingleChildScrollView(
-
-              padding: EdgeInsets.symmetric(
-
-                horizontal: horizontalPadding,
-
-                vertical: 20,
-
-              ),
-
-              child: ConstrainedBox(
-
-                constraints: BoxConstraints(
-
-                  minHeight: constraints.maxHeight,
-
-                ),
-
-                child: Column(
-
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
-
-                  children: [
-
-                    Text(
-
-                      "Home",
-
-                      style: TextStyle(
-
-                        fontSize:
-                        isMobile ? 26 : 32,
-
-                        fontWeight:
-                        FontWeight.bold,
-
-                        color: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.color,
-
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
                       ),
 
-                    ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
 
-                    SizedBox(
-                      height: weatherSpacing,
-                    ),
+                        children: [
+                          Text(
+                            "Home",
 
-                    Text(
+                            style: TextStyle(
+                              fontSize: isMobile ? 26 : 32,
 
-                      "Welcome $userName 👋",
+                              fontWeight: FontWeight.bold,
 
-                      style: TextStyle(
+                              color: Theme.of(
+                                context,
+                              ).textTheme.titleLarge?.color,
+                            ),
+                          ),
 
-                        fontSize:
-                        isMobile ? 22 : 28,
+                          SizedBox(height: weatherSpacing),
 
-                        fontWeight:
-                        FontWeight.bold,
+                          Text(
+                            "Welcome Back," ,
 
-                        color: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.color,
+                            style: TextStyle(
+                              fontSize: isMobile ? 22 : 28,
 
-                      ),
+                              fontWeight: FontWeight.bold,
 
-                    ),
+                              color: Theme.of(
+                                context,
+                              ).textTheme.titleLarge?.color,
+                            ),
+                          ),
 
-                    const SizedBox(height: 6),
+                          const SizedBox(height: 6),
+                          const SizedBox(height: 4),
 
-                    Text(
+                          Text(
 
-                      "Manage your smart home easily",
+                            "$userName 👋",
 
-                      style: TextStyle(
+                            style: TextStyle(
 
-                        fontSize:
-                        isMobile ? 14 : 16,
+                              fontSize: isMobile ? 28 : 34,
 
-                        color: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.color,
+                              fontWeight: FontWeight.bold,
 
-                      ),
-
-                    ),
-
-                    SizedBox(
-                      height: weatherSpacing,
-                    ),
-
-                    Text(
-
-                      "Today's Weather",
-
-                      style: TextStyle(
-
-                        fontSize:
-                        isMobile ? 18 : 22,
-
-                        fontWeight:
-                        FontWeight.bold,
-
-                        color: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.color,
-
-                      ),
-
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    weather == null
-
-                        ? Text(
-
-                      "Loading Weather...",
-
-                      style: TextStyle(
-
-                        color: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.color,
-
-                      ),
-
-                    )
-
-                        : WeatherCard(
-
-                      weather: weather!,
-
-                    ),
-
-                    SizedBox(
-                      height: weatherSpacing,
-                    ),
-
-                    GridView.builder(
-
-                      shrinkWrap: true,
-
-                      physics:
-                      const NeverScrollableScrollPhysics(),
-
-                      itemCount: 3,
-
-                      gridDelegate:
-
-                      SliverGridDelegateWithFixedCrossAxisCount(
-
-                        crossAxisCount: gridCount,
-
-                        crossAxisSpacing: 12,
-
-                        mainAxisSpacing: 12,
-
-                        childAspectRatio:
-                        isMobile ? 1.35 : 1.5,
-
-                      ),
-
-                      itemBuilder: (context, index) {
-
-                        switch (index) {
-
-                          case 0:
-
-                            return _statusCard(
-
-                              title: "Power",
-
-                              value:
-                              "${totalPower.toStringAsFixed(1)} W",
-
-                              icon: Icons.bolt,
-
-                              color: Colors.orange,
-
-                            );
-
-                          case 1:
-
-                            return _statusCard(
-
-                              title: "Devices",
-
-                              value: "$devicesCount",
-
-                              icon: Icons.devices,
-
-                              color: Colors.blue,
-
-                            );
-
-                          default:
-
-                            return _statusCard(
-
-                              title: "Rooms",
-
-                              value: "$roomsCount",
-
-                              icon: Icons.home,
-
-                              color: Colors.green,
-
-                            );
-
-                        }
-
-                      },
-
-                    ),
-
-                    SizedBox(
-                      height: weatherSpacing,
-                    ),
-
-                    Text(
-
-                      "Quick Actions",
-
-                      style: TextStyle(
-
-                        fontSize:
-                        isMobile ? 18 : 22,
-
-                        fontWeight:
-                        FontWeight.bold,
-
-                        color: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.color,
-
-                      ),
-
-                    ),
-
-                    const SizedBox(height: 15),
-
-                    SizedBox(
-
-                      width: double.infinity,
-
-                      child: GestureDetector(
-
-                        onTap: () async {
-
-                          await turnAllOff();
-
-                        },
-
-                        child: Container(
-
-                          constraints:
-
-                          const BoxConstraints(
-
-                            minHeight: 90,
+                            ),
 
                           ),
 
-                          decoration:
+                          Text(
+                            "Manage your smart home easily",
 
-                          BoxDecoration(
+                            style: TextStyle(
+                              fontSize: isMobile ? 14 : 16,
 
-                            color: Colors.red
-                                .withOpacity(.3),
-
-                            borderRadius:
-                            BorderRadius.circular(20),
-
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodyMedium?.color,
+                            ),
                           ),
 
-                          child: Column(
+                          SizedBox(height: weatherSpacing),
 
-                            mainAxisAlignment:
-                            MainAxisAlignment.center,
+                          Text(
+                            "Today's Weather",
 
-                            children: [
+                            style: TextStyle(
+                              fontSize: isMobile ? 18 : 22,
 
-                              Icon(
+                              fontWeight: FontWeight.bold,
 
-                                Icons.power_off,
+                              color: Theme.of(
+                                context,
+                              ).textTheme.titleLarge?.color,
+                            ),
+                          ),
 
-                                color: Theme.of(context)
-                                    .brightness ==
-                                    Brightness.dark
+                          const SizedBox(height: 12),
 
-                                    ? Colors.red
-                                    .withOpacity(.25)
+                          weather == null
+                              ? Text(
+                                  "Loading Weather...",
 
-                                    : Colors.red.shade100,
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.titleLarge?.color,
+                                  ),
+                                )
+                              : WeatherCard(weather: weather!),
 
-                              ),
+                          SizedBox(height: weatherSpacing),
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
 
-                              const SizedBox(height: 10),
+                            itemCount: 2,
 
-                              Text(
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: gridCount,
+                                  crossAxisSpacing: 12,
 
-                                "All Off",
-
-                                style: TextStyle(
-
-                                  fontSize:
-                                  isMobile ? 18 : 22,
-
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge
-                                      ?.color,
-
+                                  mainAxisSpacing: 12,
+                                  childAspectRatio: 1.6,
                                 ),
 
-                              ),
+                            itemBuilder: (context, index) {
+                              switch (index) {
 
-                            ],
+                                case 0:
+                                  return _statusCard(
+                                    title: "Devices",
 
+                                    value: "$devicesCount",
+
+                                    icon: Icons.devices,
+
+                                    color: Colors.blue,
+                                  );
+
+                                default:
+                                  return _statusCard(
+                                    title: "Rooms",
+
+                                    value: "$roomsCount",
+
+                                    icon: Icons.home,
+
+                                    color: Colors.green,
+                                  );
+                              }
+                            },
                           ),
 
-                        ),
+                          SizedBox(height: weatherSpacing),
+                          Text(
+                            "Quick Actions",
 
+                            style: TextStyle(
+                              fontSize: isMobile ? 18 : 22,
+
+                              fontWeight: FontWeight.bold,
+
+                              color: Theme.of(
+                                context,
+                              ).textTheme.titleLarge?.color,
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+
+                          SizedBox(
+                            width: double.infinity,
+
+                            child: GestureDetector(
+                              onTap: () async {
+                                bool? ok = await showDialog(
+
+                                    context: context,
+
+                                    builder: (_) {
+
+                                      return AlertDialog(
+
+                                        title: const Text(
+
+                                            "Turn Off All Devices?"
+
+                                        ),
+
+                                        content: const Text(
+
+                                          "Are you sure you want to turn off every device?",
+
+                                        ),
+
+                                        actions: [
+
+                                          TextButton(
+
+                                            onPressed: () {
+
+                                              Navigator.pop(context,false);
+
+                                            },
+
+                                            child: const Text("Cancel"),
+
+                                          ),
+
+                                          ElevatedButton(
+
+                                            onPressed: () {
+
+                                              Navigator.pop(context,true);
+
+                                            },
+
+                                            child: const Text("Turn Off"),
+
+                                          )
+
+                                        ],
+
+                                      );
+
+                                    }
+
+                                );
+
+                                if(ok==true){
+
+                                  await turnAllOff();
+
+                                }
+                              },
+
+                              child: Container(
+                                constraints: const BoxConstraints(
+                                  minHeight: 30,
+                                ),
+
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withOpacity(.3),
+
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+
+                                  children: [
+                                    Icon(
+                                      Icons.power_off,
+
+                                      color:
+                                          Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.red.withOpacity(.25)
+                                          : Colors.red.shade100,
+                                    ),
+
+                                    const SizedBox(height: 10),
+
+                                    Column(
+
+                                      mainAxisAlignment: MainAxisAlignment.center,
+
+                                      children: [
+
+                                        Icon(
+
+                                          Icons.power_settings_new,
+
+                                          color: Colors.orange,
+
+                                          size: 20,
+
+                                        ),
+
+                                        const SizedBox(height: 10),
+
+                                        const Text(
+
+                                          "Turn Off",
+
+                                          style: TextStyle(
+
+                                            fontWeight: FontWeight.bold,
+
+                                            fontSize: 18,
+
+                                          ),
+
+                                        ),
+
+                                        const Text(
+
+                                          "All Devices",
+
+                                          style: TextStyle(
+
+                                            color: Colors.grey,
+
+                                          ),
+
+                                        ),
+
+                                      ],
+
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 30),
+                        ],
                       ),
-
                     ),
-
-                    const SizedBox(height: 30),
-
-                  ],
-
-                ),
-
+                  );
+                },
               ),
-
-            );
-
-          },
-
-        ),
-
-      ),
-
+            ),
+    ),
     );
-
   }
-  Widget _statusCard({
 
+  Widget _statusCard({
     required String title,
 
     required String value,
@@ -751,222 +607,132 @@ class _HomePageState extends State<HomePage> {
     required IconData icon,
 
     required Color color,
-
   }) {
-
     final width = MediaQuery.of(context).size.width;
 
     final isMobile = width < 600;
 
-    return Container(
-
-      padding: EdgeInsets.all(
-        isMobile ? 14 : 18,
-      ),
+    return AnimatedContainer(
+      padding: EdgeInsets.all(isMobile ? 14 : 18),
 
       decoration: BoxDecoration(
-
         color: Theme.of(context).cardColor,
 
         borderRadius: BorderRadius.circular(18),
-
       ),
+      duration:
+      const Duration(milliseconds: 300),
 
+      curve: Curves.easeInOut,
       child: Column(
-
         crossAxisAlignment: CrossAxisAlignment.start,
-
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
 
         children: [
-
           Container(
-
-            padding: EdgeInsets.all(
-              isMobile ? 8 : 10,
-            ),
+            padding: EdgeInsets.all(isMobile ? 8 : 10),
 
             decoration: BoxDecoration(
-
               color: color.withOpacity(.2),
 
               borderRadius: BorderRadius.circular(10),
-
             ),
 
-            child: Icon(
-
-              icon,
-
-              color: color,
-
-              size: isMobile ? 18 : 22,
-
-            ),
-
+            child: Icon(icon, color: color, size: isMobile ? 18 : 22),
           ),
 
-          SizedBox(
-            height: isMobile ? 12 : 16,
-          ),
+          SizedBox(height: isMobile ? 12 : 16),
 
           FittedBox(
-
             fit: BoxFit.scaleDown,
 
             alignment: Alignment.centerLeft,
 
             child: Text(
-
               value,
 
               maxLines: 1,
 
               style: TextStyle(
+                fontSize: isMobile ? 18 : 24,
 
-                fontSize:
-                isMobile ? 18 : 24,
+                fontWeight: FontWeight.bold,
 
-                fontWeight:
-                FontWeight.bold,
-
-                color: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.color,
-
+                color: Theme.of(context).textTheme.titleLarge?.color,
               ),
-
             ),
-
           ),
 
           const SizedBox(height: 4),
 
           FittedBox(
-
             fit: BoxFit.scaleDown,
 
             alignment: Alignment.centerLeft,
 
             child: Text(
-
               title,
 
               maxLines: 1,
 
               style: TextStyle(
+                fontSize: isMobile ? 13 : 15,
 
-                fontSize:
-                isMobile ? 13 : 15,
-
-                color: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.color,
-
+                color: Theme.of(context).textTheme.bodyMedium?.color,
               ),
-
             ),
-
           ),
-
         ],
-
       ),
-
     );
-
   }
 
-  Widget _actionButton(
-
-      String title,
-
-      IconData icon,
-
-      Color color,
-
-      ) {
-
+  Widget _actionButton(String title, IconData icon, Color color) {
     final width = MediaQuery.of(context).size.width;
 
     final isMobile = width < 600;
 
     return Container(
-
       padding: EdgeInsets.symmetric(
-
         vertical: isMobile ? 14 : 18,
 
         horizontal: 12,
-
       ),
 
       decoration: BoxDecoration(
-
         color: color.withOpacity(.2),
 
         borderRadius: BorderRadius.circular(15),
-
       ),
 
       child: Column(
-
         mainAxisAlignment: MainAxisAlignment.center,
 
         children: [
+          Icon(icon, color: color, size: isMobile ? 24 : 30),
 
-          Icon(
-
-            icon,
-
-            color: color,
-
-            size: isMobile ? 24 : 30,
-
-          ),
-
-          SizedBox(
-            height: isMobile ? 8 : 10,
-          ),
-
+          SizedBox(height: isMobile ? 8 : 10),
           Flexible(
-
             child: FittedBox(
-
               fit: BoxFit.scaleDown,
 
               child: Text(
-
                 title,
 
                 textAlign: TextAlign.center,
 
                 style: TextStyle(
+                  fontSize: isMobile ? 14 : 16,
 
-                  fontSize:
-                  isMobile ? 14 : 16,
-
-                  color: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.color,
-
+                  color: Theme.of(context).textTheme.titleLarge?.color,
                 ),
-
               ),
-
             ),
-
           ),
-
         ],
-
       ),
-
     );
-
   }
 
 }

@@ -4,7 +4,7 @@ import '../../models/device_model.dart';
 import '../../services/device_service.dart';
 
 import '../widets/DeviceCard.dart';
-
+import 'dart:async';
 class DynamicDevicesPage extends StatefulWidget {
 
   final String roomId;
@@ -103,25 +103,40 @@ class _DynamicDevicesPageState
 
   ];
 
+  Timer? timer;
+
   @override
   void initState() {
     super.initState();
 
-    print("ROOM ID = ${widget.roomId}");
-
     loadDevices();
+
+    timer = Timer.periodic(
+      const Duration(seconds: 5),
+          (_) {
+        loadDevices();
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
   }
   Future loadDevices() async {
 
     try {
 
-      devices =
-      await service.getDevices(
-        widget.roomId,
-      );
+      devices = await service.getDevices(widget.roomId);
 
-      print("ROOM ID => ${widget.roomId}");
-      print("DEVICES => $devices");
+      print("========== DEVICES ==========");
+
+      for (var d in devices) {
+        print("${d.name} ---> ${d.state}");
+      }
+
+      print("============================");
 
     } catch (e) {
 
@@ -132,6 +147,7 @@ class _DynamicDevicesPageState
     setState(() {
       isLoading = false;
     });
+
   }
   void showEditDialog(DeviceModel device) {
 
@@ -157,14 +173,16 @@ class _DynamicDevicesPageState
             return AlertDialog(
 
               backgroundColor:
-              const Color(0xFF1E1E1E),
-
-              title: const Text(
+              Theme.of(context).scaffoldBackgroundColor,
+              title: Text(
 
                 "Edit Device",
 
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.color,
                 ),
 
               ),
@@ -176,8 +194,11 @@ class _DynamicDevicesPageState
                 dropdownColor:
                 const Color(0xFF1E1E1E),
 
-                style: const TextStyle(
-                  color: Colors.white,
+                style:  TextStyle(
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.color,
                 ),
 
                 items: deviceTypes.map((item) {
@@ -261,8 +282,7 @@ class _DynamicDevicesPageState
 
     return Scaffold(
 
-      backgroundColor:
-      const Color(0xFF0F0F0F),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       appBar: AppBar(
 
@@ -329,6 +349,7 @@ class _DynamicDevicesPageState
           devices[i];
 
           return DeviceCard(
+            key: ValueKey("${device.id}_${device.state}"),
 
             deviceId: device.id!,
 
@@ -351,9 +372,57 @@ class _DynamicDevicesPageState
 
           },
 
-              onDelete: () {
+            onDelete: () {
 
-              },
+              showDialog(
+
+                context: context,
+
+                builder: (_) => AlertDialog(
+
+                  title: const Text("Delete Device"),
+
+                  content: const Text(
+                    "Are you sure you want to delete this device?",
+                  ),
+
+                  actions: [
+
+                    TextButton(
+
+                      onPressed: () {
+
+                        Navigator.pop(context);
+
+                      },
+
+                      child: const Text("Cancel"),
+
+                    ),
+
+                    ElevatedButton(
+
+                      onPressed: () async {
+
+                        Navigator.pop(context);
+
+                        await service.deleteDevice(device.id!);
+
+                        await loadDevices();
+
+                      },
+
+                      child: const Text("Delete"),
+
+                    ),
+
+                  ],
+
+                ),
+
+              );
+
+            },
 
           );
         },
@@ -362,7 +431,7 @@ class _DynamicDevicesPageState
 
       floatingActionButton:
       FloatingActionButton(
-
+        heroTag: null,
         backgroundColor:
         Colors.orange,
 

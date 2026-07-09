@@ -36,7 +36,7 @@ class DeviceCard extends StatefulWidget {
 
 class _DeviceCardState
     extends State<DeviceCard> {
-
+  late final theme = Theme.of(context);
   late bool isOn;
 
   String aiStatus = "loading";
@@ -71,6 +71,16 @@ class _DeviceCardState
   }
 
   @override
+  void didUpdateWidget(covariant DeviceCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.isOn != widget.isOn) {
+      setState(() {
+        isOn = widget.isOn;
+      });
+    }
+  }
+  @override
   Widget build(BuildContext context) {
 
     return Container(
@@ -83,7 +93,7 @@ class _DeviceCardState
 
         color: isOn
             ? const Color(0xFFCE672C)
-            : const Color(0xFF1E1E1E),
+            : theme.cardColor,
 
         borderRadius:
         BorderRadius.circular(24),
@@ -92,8 +102,7 @@ class _DeviceCardState
 
           BoxShadow(
 
-            color:
-            Colors.black.withOpacity(0.25),
+            color: theme.shadowColor,
 
             blurRadius: 15,
 
@@ -165,9 +174,9 @@ class _DeviceCardState
 
                   decoration: BoxDecoration(
 
-                    color:
-                    Colors.red.withOpacity(0.15),
-
+                    color: Colors.blue.withOpacity(
+                      theme.brightness == Brightness.dark ? .15 : .08,
+                    ),
                     shape: BoxShape.circle,
 
                   ),
@@ -240,14 +249,12 @@ class _DeviceCardState
 
             widget.name,
 
-            style: const TextStyle(
-
-              color: Colors.white,
-
+            style: TextStyle(
+              color: isOn
+                  ? Colors.white
+                  : theme.textTheme.titleLarge?.color,
               fontSize: 16,
-
               fontWeight: FontWeight.bold,
-
             ),
 
           ),
@@ -328,14 +335,16 @@ class _DeviceCardState
 
                     ),
 
-                    child: const Center(
+                    child: Center(
 
                       child: Text(
 
                         "Stats",
 
                         style: TextStyle(
-                          color: Colors.white,
+                          color: isOn
+                              ? Colors.white
+                              : theme.textTheme.titleLarge?.color,
                         ),
 
                       ),

@@ -1,16 +1,11 @@
-import 'dart:typed_data';
-import 'package:provider/provider.dart';
 
+import 'package:provider/provider.dart';
 import '../../providers/theme_provider.dart';
 import 'edit_profile_page.dart';
-import 'package:dio/dio.dart';
-
+import 'usage_history_page.dart';
 import 'package:flutter/material.dart';
 
-import 'package:image_picker/image_picker.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'login_page.dart';
 import 'package:provider/provider.dart';
 
@@ -34,32 +29,25 @@ class ProfilePage extends StatefulWidget {
 
 }
 
-class _ProfilePageState
-    extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage> {
 
   String name = "";
   String email = "";
   String image = "";
 
-  Uint8List? profileImage;
 
 
   @override
   void initState() {
-
     super.initState();
 
     loadProfileData();
-
   }
 
   Future loadProfileData() async {
-
     final prefs =
     await SharedPreferences.getInstance();
-
     setState(() {
-
       name =
           prefs.getString("name") ?? "";
 
@@ -67,267 +55,487 @@ class _ProfilePageState
           prefs.getString("email") ?? "";
       image =
           prefs.getString("image") ?? "";
-
     });
-
   }
-
-  Future pickAndUploadImage() async {
-
-    final picker = ImagePicker();
-
-    final pickedFile =
-    await picker.pickImage(
-      source: ImageSource.gallery,
-    );
-
-    if (pickedFile == null) return;
-
-    Uint8List imageBytes =
-    await pickedFile.readAsBytes();
-
-    setState(() {
-
-      profileImage = imageBytes;
-
-    });
-
-    final prefs =
-    await SharedPreferences.getInstance();
-
-    String token =
-        prefs.getString("token") ?? "";
-
-    String fileName =
-        pickedFile.name;
-
-    FormData formData = FormData();
-
-    formData.files.add(
-      MapEntry(
-        "file",
-        MultipartFile.fromBytes(
-          imageBytes,
-          filename: "profile.jpg",
-        ),
-      ),
-    );
-
-    formData.fields.add(
-      const MapEntry(
-        "upload_preset",
-        "flutter_profile",
-      ),
-    );
-    try {
-
-      print("START UPLOAD");
-
-      Response response = await Dio().post(
-        "https://api.cloudinary.com/v1_1/deds7dd60/image/upload",
-        data: formData,
-      );
-
-      print(response.data);
-
-    } on DioException catch (e) {
-
-      print("STATUS = ${e.response?.statusCode}");
-      print("DATA = ${e.response?.data}");
-      print("URL = ${e.requestOptions.uri}");
-
-    }
-
-  }
-
-
 
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    final size = MediaQuery
+        .of(context)
+        .size;
+
+    final width = size.width;
+
+    final isMobile = width < 600;
+
+    final isTablet = width >= 600 && width < 1024;
+
+    final horizontalPadding =
+    isMobile ? 16.0 : isTablet ? 24.0 : 40.0;
+
+    final avatarSize =
+    isMobile ? 120.0 : isTablet ? 140.0 : 160.0;
+
+    final avatarRadius =
+    isMobile ? 40.0 : isTablet ? 48.0 : 56.0;
+
     return Scaffold(
 
       backgroundColor:
-      Theme.of(context).scaffoldBackgroundColor,
+      theme.scaffoldBackgroundColor,
 
       body: SafeArea(
 
-        child: SingleChildScrollView(
+        child: LayoutBuilder(
 
-          child: Padding(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
 
-            padding:
-            const EdgeInsets.all(20),
+              padding: EdgeInsets.all(horizontalPadding),
 
-            child: Column(
+              child: ConstrainedBox(
 
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+                constraints: BoxConstraints(
 
-              children: [
-
-                Text(
-                  "Profile",
-                  style: TextStyle(
-                    color: Theme.of(context)
-                        .textTheme
-                        .titleLarge
-                        ?.color,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-
-                Center(
-
-                  child: Column(
-
-                    children: [
-
-                      GestureDetector(
-
-                        onTap:
-                        pickAndUploadImage,
-
-                        child: Container(
-
-                          width: 130,
-                          height: 130,
-
-                          decoration:
-                          BoxDecoration(
-
-                            color: Theme.of(context).cardColor,
-
-                            borderRadius:
-                            BorderRadius.circular(
-                              24,
-                            ),
-
-                          ),
-
-                          child: Center(
-
-                            child: CircleAvatar(
-
-                              radius: 42,
-
-                              backgroundColor: Colors.white,
-
-                              backgroundImage:
-
-                              image.isNotEmpty
-
-                                  ? NetworkImage(image)
-
-                                  : null,
-
-                              child:
-
-                              image.isEmpty
-
-                                  ? const Icon(
-                                Icons.person,
-                                size: 60,
-                                color: Colors.grey,
-                              )
-
-                                  : null,
-                            ),
-
-                          ),
-
-                        ),
-
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      Text(
-
-                        name,
-
-                        style: TextStyle(
-
-                          color: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.color,
-
-                          fontSize: 22,
-
-                          fontWeight:
-                          FontWeight.bold,
-
-                        ),
-
-                      ),
-
-                      const SizedBox(height: 5),
-
-                      Text(
-
-                        email,
-
-                        style: TextStyle(
-                          color: theme.textTheme.bodyMedium?.color,
-                          fontSize: 14,
-                        ),
-
-                      ),
-
-                    ],
-
-                  ),
+                  minHeight: constraints.maxHeight,
 
                 ),
 
-                const SizedBox(height: 30),
+                child: Column(
 
-                Row(
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
 
                   children: [
 
-                    Expanded(
+                    Text(
 
-                      child: _buildStatCard(
+                      "Profile",
 
-                        widget.roomsNumber
-                            .toString(),
+                      style: TextStyle(
 
-                        "Rooms",
+                        color: theme.textTheme.titleLarge?.color,
 
-                      ),
+                        fontSize: isMobile ? 22 : 26,
 
-                    ),
-
-                    const SizedBox(width: 15),
-
-                    Expanded(
-
-                      child: _buildStatCard(
-
-                        widget.devicesNumber
-                            .toString(),
-
-                        "Devices",
+                        fontWeight: FontWeight.bold,
 
                       ),
 
                     ),
 
-                    const SizedBox(width: 15),
+                    SizedBox(
+                      height: isMobile ? 24 : 30,
+                    ),
 
-                    Expanded(
+                    Center(
 
-                      child: _buildStatCard(
+                      child: Column(
 
-                        "2.4 kWh",
+                        children: [
 
-                        "Today",
+                          GestureDetector(
+
+                            onTap: () async {
+
+                              final result = await Navigator.push(
+
+                                context,
+
+                                MaterialPageRoute(
+
+                                  builder: (_) => EditProfilePage(
+
+                                    currentName: name,
+
+                                    currentEmail: email,
+
+                                  ),
+
+                                ),
+
+                              );
+
+                              if (result == true) {
+
+                                await loadProfileData();
+
+                              }
+
+                            },
+
+                            child: Container(
+
+                              width: avatarSize,
+
+                              height: avatarSize,
+
+                              decoration: BoxDecoration(
+
+                                color: theme.cardColor,
+
+                                borderRadius: BorderRadius.circular(24),
+
+                              ),
+
+                              child: Center(
+
+                                child: CircleAvatar(
+
+                                  radius: avatarRadius,
+
+                                  backgroundColor: theme.colorScheme.primary,
+
+                                  backgroundImage: image.isNotEmpty
+
+                                      ? NetworkImage(image)
+
+                                      : null,
+
+                                  child: image.isEmpty
+
+                                      ? Icon(
+
+                                    Icons.person,
+
+                                    color: theme.colorScheme.onPrimary,
+
+                                    size: avatarRadius,
+
+                                  )
+
+                                      : null,
+
+                                ),
+
+                              ),
+
+                            ),
+
+                          ),
+
+                          SizedBox(
+                            height: isMobile ? 16 : 20,
+                          ),
+
+                          FittedBox(
+
+                            child: Text(
+
+                              name,
+
+                              style: TextStyle(
+
+                                color: theme.textTheme.titleLarge?.color,
+
+                                fontSize: isMobile ? 20 : 22,
+
+                                fontWeight: FontWeight.bold,
+
+                              ),
+
+                            ),
+
+                          ),
+
+                          const SizedBox(height: 5),
+
+                          FittedBox(
+
+                            child: Text(
+
+                              email,
+
+                              style: TextStyle(
+
+                                color: theme.textTheme.bodyMedium?.color,
+
+                                fontSize: isMobile ? 13 : 14,
+
+                              ),
+
+                            ),
+
+                          ),
+
+                        ],
+
+                      ),
+
+                    ),
+
+                    SizedBox(
+                      height: isMobile ? 24 : 30,
+                    ),
+
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final bool isSmall = constraints.maxWidth < 650;
+
+                        final double cardWidth = isSmall
+                            ? constraints.maxWidth
+                            : (constraints.maxWidth - 30) / 3;
+
+                        return Wrap(
+
+                          spacing: 15,
+
+                          runSpacing: 15,
+
+                          children: [
+
+                            SizedBox(
+
+                              width: cardWidth,
+
+                              child: _buildStatCard(
+
+                                widget.roomsNumber.toString(),
+
+                                "Rooms",
+
+                              ),
+
+                            ),
+
+                            SizedBox(
+
+                              width: cardWidth,
+
+                              child: _buildStatCard(
+
+                                widget.devicesNumber.toString(),
+
+                                "Devices",
+
+                              ),
+
+                            ),
+
+                            SizedBox(
+
+                              width: cardWidth,
+
+                              child: _buildStatCard(
+
+                                "2.4 kWh",
+
+                                "Today",
+
+                              ),
+
+                            ),
+
+                          ],
+
+                        );
+                      },
+
+                    ),
+
+                    SizedBox(
+                      height: isMobile ? 24 : 28,
+                    ),
+
+                    _buildTile(
+
+                      Icons.edit,
+
+                      "Edit Profile",
+
+                      onTap: () async {
+                        final result = await Navigator.push(
+
+                          context,
+
+                          MaterialPageRoute(
+
+                            builder: (_) =>
+                                EditProfilePage(
+
+                                  currentName: name,
+
+                                  currentEmail: email,
+
+                                ),
+
+                          ),
+
+                        );
+
+                        if (result == true) {
+                          loadProfileData();
+                        }
+                      },
+
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    _buildTile(
+
+                      Icons.history,
+
+                      "Usage History",
+
+                      onTap: () {
+
+                        Navigator.push(
+
+                          context,
+
+                          MaterialPageRoute(
+
+                            builder: (_) => const UsageHistoryPage(),
+
+                          ),
+
+                        );
+
+                      },
+
+                    ),
+
+                    SizedBox(
+                      height: isMobile ? 24 : 30,
+                    ),
+
+                    Container(
+
+                      margin: const EdgeInsets.only(top: 15),
+
+                      decoration: BoxDecoration(
+
+                        color: theme.cardColor,
+
+                        borderRadius: BorderRadius.circular(18),
+
+                      ),
+
+                      child: Consumer<ThemeProvider>(
+
+                        builder: (context,
+
+                            themeProvider,
+
+                            child,) {
+                          return SwitchListTile(
+
+                            title: Text(
+
+                              "Dark Mode",
+
+                              style: TextStyle(
+
+                                color: theme.textTheme.titleLarge?.color,
+
+                              ),
+
+                            ),
+
+                            secondary: Icon(
+
+                              themeProvider.isDark
+
+                                  ? Icons.dark_mode
+
+                                  : Icons.light_mode,
+
+                              color: theme.textTheme.titleLarge?.color,
+
+                            ),
+
+                            value: themeProvider.isDark,
+
+                            onChanged: (value) {
+                              themeProvider.toggleTheme();
+                            },
+
+                          );
+                        },
+
+                      ),
+
+                    ),
+
+                    SizedBox(
+                      height: isMobile ? 24 : 30,
+                    ),
+
+                    SizedBox(
+
+                      width: double.infinity,
+
+                      height: 56,
+
+                      child: ElevatedButton(
+
+                        style: ElevatedButton.styleFrom(
+
+                          backgroundColor: theme.primaryColor,
+
+                          shape: RoundedRectangleBorder(
+
+                            borderRadius: BorderRadius.circular(18),
+
+                          ),
+
+                        ),
+
+                        onPressed: () async {
+                          final prefs =
+                          await SharedPreferences.getInstance();
+
+                          await prefs.clear();
+
+                          Navigator.pushAndRemoveUntil(
+
+                            context,
+
+                            MaterialPageRoute(
+
+                              builder: (_) => const LoginScreen(),
+
+                            ),
+
+                                (route) => false,
+
+                          );
+                        },
+
+                        child: FittedBox(
+
+                          child: const Row(
+
+                            mainAxisSize: MainAxisSize.min,
+
+                            mainAxisAlignment: MainAxisAlignment.center,
+
+                            children: [
+
+                              Icon(
+                                Icons.logout,
+                                color: Colors.black,
+                              ),
+
+                              SizedBox(width: 10),
+
+                              Text(
+                                "Logout",
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+
+                            ],
+
+                          ),
+
+                        ),
 
                       ),
 
@@ -337,295 +545,159 @@ class _ProfilePageState
 
                 ),
 
-                const SizedBox(height: 28),
+              ),
 
-                _buildTile(
-                  Icons.edit,
-                  "Edit Profile",
-                  onTap: () async {
-                    final result =
-                        await Navigator.push(
-
-                      context,
-
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            EditProfilePage(
-                              currentName: name,
-                              currentEmail: email,
-                            ),
-                      ),
-                    );
-
-                    if(result == true){
-                      loadProfileData();
-                    }
-                  },
-                ),
-                const SizedBox(height: 15),
-
-                _buildTile(
-
-                  Icons.history,
-
-                  "Usage History",
-
-                ),
-
-                const SizedBox(height: 30),
-                Container(
-
-                  margin: const EdgeInsets.only(
-                    top: 15,
-                  ),
-
-                  decoration: BoxDecoration(
-                    color: theme.cardColor,
-                    borderRadius:
-                    BorderRadius.circular(18),
-                  ),
-
-                  child: Consumer<ThemeProvider>(
-
-                    builder: (
-                        context,
-                        themeProvider,
-                        child,
-                        ) {
-
-                      return SwitchListTile(
-
-                        title: Text(
-                          "Dark Mode",
-                          style: TextStyle(
-                            color: theme.textTheme.titleLarge?.color,
-                          ),
-                        ),
-
-                        secondary: Icon(
-
-                          themeProvider.isDark
-                              ? Icons.dark_mode
-                              : Icons.light_mode,
-
-                          color: theme.textTheme.titleLarge?.color,
-                        ),
-
-                        value:
-                        themeProvider.isDark,
-
-                        onChanged: (value) {
-
-                          themeProvider
-                              .toggleTheme();
-
-                        },
-
-                      );
-                    },
-                  ),
-                ),
-
-
-                ElevatedButton(
-
-                  style:
-                  ElevatedButton.styleFrom(
-
-                    backgroundColor: theme.primaryColor,
-
-                    minimumSize:
-                    const Size(
-                      double.infinity,
-                      56,
-                    ),
-
-                    shape:
-                    RoundedRectangleBorder(
-
-                      borderRadius:
-                      BorderRadius.circular(
-                        18,
-                      ),
-
-                    ),
-
-                  ),
-
-                  onPressed: () async {
-
-                    final prefs =
-                    await SharedPreferences.getInstance();
-
-                    await prefs.clear();
-
-                    Navigator.pushAndRemoveUntil(
-
-                      context,
-
-                      MaterialPageRoute(
-                        builder: (_) => const LoginScreen(),
-                      ),
-
-                          (route) => false,
-                    );
-                  },
-
-                  child: const Row(
-
-                    mainAxisAlignment:
-                    MainAxisAlignment.center,
-
-                    children: [
-
-                      Icon(
-
-                        Icons.logout,
-
-                        color: Colors.black,
-
-                      ),
-
-                      SizedBox(width: 10),
-
-                      Text(
-
-                        "Logout",
-
-                        style: TextStyle(
-
-                          color: Colors.black,
-
-                          fontWeight:
-                          FontWeight.bold,
-
-                        ),
-
-                      ),
-
-                    ],
-
-                  ),
-
-                ),
-
-              ],
-
-            ),
-
-          ),
+            );
+          },
 
         ),
 
       ),
 
-
-
-
-
     );
-
   }
 
-  Widget _buildStatCard(
+  Widget _buildStatCard(String value,
+      String title,) {
+    final width = MediaQuery
+        .of(context)
+        .size
+        .width;
 
-      String value,
-      String title,
-
-      ) {
+    final bool isMobile = width < 600;
 
     return Container(
+      constraints: const BoxConstraints(
+        minHeight: 100,
+      ),
 
-      padding:
-      const EdgeInsets.symmetric(
-        vertical: 22,
+      padding: EdgeInsets.symmetric(
+        vertical: isMobile ? 18 : 22,
+        horizontal: 12,
       ),
 
       decoration: BoxDecoration(
-
-        color: Theme.of(context).cardColor,
-
-        borderRadius:
-        BorderRadius.circular(18),
-
+        color: Theme
+            .of(context)
+            .cardColor,
+        borderRadius: BorderRadius.circular(18),
       ),
 
       child: Column(
-
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
 
-          Text(
-
-            value,
-
-            style:  TextStyle(
-              color: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.color,),
-
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              maxLines: 1,
+              style: TextStyle(
+                color: Theme
+                    .of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.color,
+                fontSize: isMobile ? 20 : 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
 
-          const SizedBox(height: 8),
+          SizedBox(
+            height: isMobile ? 6 : 8,
+          ),
 
-          Text(
-
-            title,
-
-            style: TextStyle(
-              color: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.color,),
-
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              title,
+              maxLines: 1,
+              style: TextStyle(
+                color: Theme
+                    .of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.color,
+                fontSize: isMobile ? 13 : 15,
+              ),
+            ),
           ),
 
         ],
-
       ),
 
-    );
 
+    );
   }
 
-  Widget _buildTile(
-      IconData icon,
+  Widget _buildTile(IconData icon,
       String title, {
         VoidCallback? onTap,
       }) {
+    final width = MediaQuery
+        .of(context)
+        .size
+        .width;
+
+    final bool isMobile = width < 600;
+
     return Container(
+
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Theme
+            .of(context)
+            .cardColor,
         borderRadius: BorderRadius.circular(18),
       ),
+
       child: ListTile(
+
         onTap: onTap,
+
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 16 : 20,
+          vertical: isMobile ? 2 : 6,
+        ),
+
         leading: Icon(
           icon,
-          color: Theme.of(context)
+          color: Theme
+              .of(context)
               .textTheme
               .titleLarge
               ?.color,
+          size: isMobile ? 22 : 26,
         ),
-        title: Text(
-          title,
-          style:  TextStyle(
-            color: Theme.of(context)
-                .textTheme
-                .titleLarge
-                ?.color,
+
+        title: FittedBox(
+          alignment: Alignment.centerLeft,
+          fit: BoxFit.scaleDown,
+          child: Text(
+            title,
+            style: TextStyle(
+              color: Theme
+                  .of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.color,
+              fontSize: isMobile ? 16 : 18,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
-        trailing:  Icon(
+
+        trailing: Icon(
           Icons.arrow_forward_ios,
-          color: Theme.of(context)
+          color: Theme
+              .of(context)
               .textTheme
               .titleLarge
               ?.color,
-          size: 16,
+          size: isMobile ? 14 : 16,
         ),
+
       ),
     );
   }
-
 }

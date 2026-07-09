@@ -47,6 +47,11 @@ class DeviceService {
 
     print("ROOM ID => $roomId");
     print("DEVICES => ${response.data}");
+    for (var d in response.data) {
+      print(
+        "DEVICE: ${d["name"]}  STATE: ${d["state"]}",
+      );
+    }
 
     List data = response.data;
 
@@ -84,9 +89,7 @@ class DeviceService {
 
   }
 
-  Future deleteDevice(
-      String id,
-      ) async {
+  Future deleteDevice(String id) async {
 
     String token = await getToken();
 
@@ -98,8 +101,7 @@ class DeviceService {
 
         headers: {
 
-          "Authorization":
-          "bearer $token",
+          "Authorization": "bearer $token",
 
         },
 

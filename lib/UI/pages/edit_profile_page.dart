@@ -58,6 +58,9 @@ class _EditProfilePageState
     String token =
         prefs.getString("token") ?? "";
 
+    if (imageUrl.isEmpty) {
+      imageUrl = prefs.getString("image") ?? "";
+    }
     try {
       print("IMAGE URL = $imageUrl");
       print("UPDATE PROFILE START");
@@ -97,7 +100,9 @@ class _EditProfilePageState
         response.data["user"]["image"] ?? "",
       );
 
-      Navigator.pop(context, true);
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
 
     } catch (e) {
 
@@ -126,6 +131,8 @@ class _EditProfilePageState
     Uint8List imageBytes =
     await pickedFile.readAsBytes();
 
+    if (!mounted) return;
+
     setState(() {
       profileImage = imageBytes;
     });
@@ -152,11 +159,19 @@ class _EditProfilePageState
 
         data: formData,
       );
+      imageUrl = response.data["secure_url"];
 
-      imageUrl =
-      response.data["secure_url"];
-      print("SAVED URL = $imageUrl");
+      final prefs =
+      await SharedPreferences.getInstance();
 
+      await prefs.setString(
+        "image",
+        imageUrl,
+      );
+
+      if (mounted) {
+        setState(() {});
+      }
     } catch (e) {
 
       print(e);
@@ -167,7 +182,7 @@ class _EditProfilePageState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor:
-      const Color(0xFF0F0F0F),
+      Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text("Edit Profile"),
       ),
@@ -185,19 +200,21 @@ class _EditProfilePageState
 
               child: CircleAvatar(
                 radius: 55,
-                backgroundColor: const Color(0xFFF59E0B),
+                backgroundColor: Theme.of(context).colorScheme.primary,
 
                 backgroundImage:
                 profileImage != null
                     ? MemoryImage(profileImage!)
+                    : imageUrl.isNotEmpty
+                    ? NetworkImage(imageUrl)
                     : null,
 
                 child:
                 profileImage == null
-                    ? const Icon(
+                    ? Icon(
                   Icons.camera_alt,
                   size: 35,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onPrimary,
                 )
                     : null,
               ),
@@ -210,7 +227,7 @@ class _EditProfilePageState
 
               decoration: BoxDecoration(
 
-                color: const Color(0xFF1E1E1E),
+                color: Theme.of(context).cardColor,
 
                 borderRadius:
                 BorderRadius.circular(20),
@@ -224,44 +241,44 @@ class _EditProfilePageState
 
                 children: [
 
-                  const Text(
-
+                  Text(
                     "Personal Information",
-
                     style: TextStyle(
-
-                      color: Colors.white,
-
+                      color: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.color,
                       fontSize: 18,
-
-                      fontWeight:
-                      FontWeight.bold,
-
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 25),
 
                   TextField(
 
                     controller: nameController,
 
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.color,
                     ),
 
                     decoration: InputDecoration(
 
-                      prefixIcon:
-                      const Icon(Icons.person),
+                      prefixIcon: Icon(
+                        Icons.person,
+                        color: Theme.of(context).iconTheme.color,
+                      ),
 
                       labelText: "Name",
 
                       filled: true,
 
-                      fillColor:
-                      const Color(0xFF2A2A2A),
-
+                      fillColor: Theme.of(context)
+                          .inputDecorationTheme
+                          .fillColor,
                       border:
                       OutlineInputBorder(
 
@@ -281,22 +298,26 @@ class _EditProfilePageState
 
                     controller: emailController,
 
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.color,
                     ),
 
                     decoration: InputDecoration(
 
-                      prefixIcon:
-                      const Icon(Icons.email),
+                      prefixIcon: Icon(
+                        Icons.email,
+                        color: Theme.of(context).iconTheme.color,
+                      ),
 
                       labelText: "Email",
 
                       filled: true,
-
-                      fillColor:
-                      const Color(0xFF2A2A2A),
-
+                      fillColor: Theme.of(context)
+                          .inputDecorationTheme
+                          .fillColor,
                       border:
                       OutlineInputBorder(
 
@@ -319,23 +340,26 @@ class _EditProfilePageState
 
                     obscureText: true,
 
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.color,
                     ),
-
                     decoration: InputDecoration(
 
-                      prefixIcon:
-                      const Icon(Icons.lock),
-
+                      prefixIcon: Icon(
+                        Icons.lock,
+                        color: Theme.of(context).iconTheme.color,
+                      ),
                       labelText:
                       "New Password",
 
                       filled: true,
 
-                      fillColor:
-                      const Color(0xFF2A2A2A),
-
+                      fillColor: Theme.of(context)
+                          .inputDecorationTheme
+                          .fillColor,
                       border:
                       OutlineInputBorder(
 

@@ -392,7 +392,7 @@ class _RoomsPageState extends State<RoomsPage> {
       floatingActionButton:
 
       FloatingActionButton(
-
+        heroTag: "roomFAB",
         backgroundColor:
         Theme.of(context)
             .colorScheme

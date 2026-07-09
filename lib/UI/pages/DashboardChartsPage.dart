@@ -32,7 +32,8 @@ class _DashboardChartsPageState
   double currentNow = 0;
   double voltageNow = 0;
   double powerNow = 0;
-
+  double temperatureNow = 0;
+  double humidityNow = 0;
   double monthlyAverage = 0;
   double yearlyAverage = 0;
   double monthlyTotal = 0;
@@ -154,6 +155,11 @@ class _DashboardChartsPageState
         powerNow =
             (latest["power"] as num?)
                 ?.toDouble() ?? 0;
+        temperatureNow =
+            (latest["temperature"] as num?)?.toDouble() ?? 0;
+
+        humidityNow =
+            (latest["humidity"] as num?)?.toDouble() ?? 0;
       }
       print("FIRST => ${readings.first}");
       print("LAST => ${readings.last}");
@@ -260,6 +266,7 @@ class _DashboardChartsPageState
   }
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final tabs = [
 
       "Current",
@@ -294,20 +301,19 @@ class _DashboardChartsPageState
 
     return Scaffold(
 
-        backgroundColor:
-        const Color(0xFF121212),
+      backgroundColor: theme.scaffoldBackgroundColor,
 
     appBar: AppBar(
-
-    backgroundColor:
-    Colors.black,
+      backgroundColor: theme.appBarTheme.backgroundColor,
 
     elevation: 0,
 
-    title: const Text(
-    "Live Sensors Dashboard",
-    ),
-
+      title: Text(
+        "Live Sensors Dashboard",
+        style: TextStyle(
+          color: theme.textTheme.titleLarge?.color,
+        ),
+      ),
     centerTitle: true,
 
     ),
@@ -430,11 +436,9 @@ class _DashboardChartsPageState
     decoration:
     BoxDecoration(
 
-    color: active
-
-    ? Colors.orange
-
-        : Colors.black26,
+      color: active
+          ? theme.colorScheme.primary
+          : theme.canvasColor,
 
     borderRadius:
     BorderRadius.circular(
@@ -450,11 +454,8 @@ class _DashboardChartsPageState
     style: TextStyle(
 
     color: active
-
-    ? Colors.black
-
-        : Colors.white,
-
+        ? theme.colorScheme.onPrimary
+        : theme.textTheme.bodyMedium?.color,
     fontWeight:
     FontWeight.bold,
 
@@ -471,6 +472,31 @@ class _DashboardChartsPageState
     ),
 
     const SizedBox(height: 20),
+      Row(
+        children: [
+
+          Expanded(
+            child: _buildLiveCard(
+              "Temperature",
+              "${temperatureNow.toStringAsFixed(1)} °C",
+              Colors.redAccent,
+            ),
+          ),
+
+          const SizedBox(width: 10),
+
+          Expanded(
+            child: _buildLiveCard(
+              "Humidity",
+              "${humidityNow.toStringAsFixed(1)} %",
+              Colors.lightBlue,
+            ),
+          ),
+
+        ],
+      ),
+
+      const SizedBox(height: 20),
 
             /// ================= MAIN CHART =================
 
@@ -488,10 +514,7 @@ class _DashboardChartsPageState
 
                 decoration: BoxDecoration(
 
-                  color:
-                  const Color(
-                    0xFF1E1E1E,
-                  ),
+                  color: theme.cardColor,
 
                   borderRadius:
                   BorderRadius.circular(
@@ -584,8 +607,8 @@ class _DashboardChartsPageState
 
                         border: Border.all(
                           color: active
-                              ? colors[index]
-                              : Colors.white12,
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).dividerColor,
                         ),
 
                       ),
@@ -628,8 +651,7 @@ class _DashboardChartsPageState
 
         decoration: BoxDecoration(
 
-          color:
-          const Color(0xFF1E1E1E),
+          color: theme.cardColor,
 
           borderRadius:
           BorderRadius.circular(20),
@@ -762,8 +784,7 @@ class _DashboardChartsPageState
 
         decoration: BoxDecoration(
 
-          color:
-          const Color(0xFF1E1E1E),
+          color: theme.cardColor,
 
           borderRadius:
           BorderRadius.circular(18),
@@ -781,9 +802,9 @@ class _DashboardChartsPageState
 
               "${tabs[selectedTab]} Chart",
 
-              style: const TextStyle(
+              style:  TextStyle(
 
-                color: Colors.white,
+                color: theme.textTheme.titleLarge?.color,
 
                 fontSize: 18,
 
@@ -918,14 +939,14 @@ class _DashboardChartsPageState
       Color color,
 
       ) {
-
+    final theme = Theme.of(context);
     return Container(
 
       padding: const EdgeInsets.all(16),
 
       decoration: BoxDecoration(
 
-        color: const Color(0xFF1E1E1E),
+        color: theme.cardColor,
 
         borderRadius:
         BorderRadius.circular(18),
@@ -938,12 +959,11 @@ class _DashboardChartsPageState
 
           BoxShadow(
 
-            color:
-            color.withOpacity(0.15),
+            color: theme.shadowColor,
 
-            blurRadius: 12,
+            blurRadius: 10,
 
-            spreadRadius: 1,
+            offset: const Offset(0, 3),
 
           ),
 
@@ -986,9 +1006,11 @@ class _DashboardChartsPageState
             overflow:
             TextOverflow.ellipsis,
 
-            style: const TextStyle(
+            style: TextStyle(
 
-              color: Colors.white,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black,
 
               fontSize: 24,
 
@@ -1026,10 +1048,10 @@ class LineChartWidget
 
   @override
   Widget build(BuildContext context) {
-
+    final theme = Theme.of(context);
     if (values.isEmpty) {
 
-      return const Center(
+      return Center(
 
         child: Text(
 
@@ -1037,7 +1059,7 @@ class LineChartWidget
 
           style: TextStyle(
 
-            color: Colors.white70,
+            color: theme.textTheme.bodyMedium?.color,
 
             fontSize: 16,
 
@@ -1084,8 +1106,7 @@ class LineChartWidget
 
             return FlLine(
 
-              color:
-              Colors.white12,
+              color: theme.dividerColor,
 
               strokeWidth: 1,
 
@@ -1098,8 +1119,7 @@ class LineChartWidget
 
             return FlLine(
 
-              color:
-              Colors.white10,
+              color: theme.dividerColor.withOpacity(.6),
 
               strokeWidth: 1,
 
@@ -1114,10 +1134,7 @@ class LineChartWidget
           show: true,
 
           border: Border.all(
-
-            color:
-            Colors.white12,
-
+            color: theme.dividerColor,
           ),
 
         ),
@@ -1143,10 +1160,9 @@ class LineChartWidget
                       .toString(),
 
                   style:
-                  const TextStyle(
+                  TextStyle(
 
-                    color:
-                    Colors.white54,
+                    color: theme.textTheme.bodyMedium?.color,
 
                     fontSize: 10,
 
