@@ -1056,7 +1056,9 @@ SizedBox(height:20 ,),
 
                     title: Text(
 
-                      schedule["deviceId"]["name"],
+                      schedule["deviceId"] != null
+                          ? schedule["deviceId"]["name"] ?? "Unknown Device"
+                          : "Unknown Device",
 
                       overflow: TextOverflow.ellipsis,
 

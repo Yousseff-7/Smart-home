@@ -82,9 +82,9 @@ class _UsageHistoryPageState extends State<UsageHistoryPage> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 2,
-              crossAxisSpacing: 15,
-              mainAxisSpacing: 15,
-              childAspectRatio: 1.2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 8,
+              childAspectRatio: 1.5,
               children: [
 
                 _summaryCard(
@@ -122,21 +122,20 @@ class _UsageHistoryPageState extends State<UsageHistoryPage> {
               ],
             ),
 
-            const SizedBox(height: 25),
-
             _buildEnergyStatus(),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
 
             _buildRecommendation(),
 
-            const SizedBox(height: 25),
+            const SizedBox(height: 10),
 
             Text(
               "History",
               style: theme.textTheme.titleLarge,
             ),
 
+            const SizedBox(height: 8),
             Expanded(
 
               child: loading

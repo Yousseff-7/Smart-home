@@ -7,6 +7,7 @@ import 'package:untitled55/UI/widets/NormalTextForms.dart';
 import 'package:untitled55/UI/widets/PassTextFroms.dart';
 import '../../Logic/SignUp/cubit.dart';
 import '../../Logic/SignUp/states.dart';
+import 'MainPage.dart';
 import 'login_page.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -40,7 +41,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           if (state is SignUpSuccessState) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => RoomsPage()),
+              MaterialPageRoute(builder: (_) => MainPage()),
             );
           }else if (state is SignUpErrorState) {
             showDialog(
