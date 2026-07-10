@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../services/notification_service.dart';
 import '../pages/Aipage.dart';
 import '../pages/DashboardChartsPage.dart';
 import '../../services/ai_service.dart';
@@ -41,9 +42,8 @@ class _DeviceCardState
 
   String aiStatus = "loading";
   final AIService aiService = AIService();
-
+  String lastStatus = "";
   Future loadAIStatus() async {
-
     String status =
     await aiService.getStatus(
       widget.deviceId,
@@ -52,11 +52,13 @@ class _DeviceCardState
     if (!mounted) return;
 
     setState(() {
-
       aiStatus = status;
-
     });
+    if (status == "anomaly" && lastStatus != "anomaly") {
+      NotificationService.showWarning(widget.name);
+    }
 
+    lastStatus = status;
   }
 
   @override

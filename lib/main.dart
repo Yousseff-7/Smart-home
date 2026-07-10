@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'services/notification_service.dart';
 import 'providers/theme_provider.dart';
 import 'theme.dart';
 import 'UI/pages/MainPage.dart';
@@ -13,7 +13,10 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
 
   bool login = prefs.getBool("isLogged") ?? false;
+  WidgetsFlutterBinding.ensureInitialized();
 
+  await NotificationService.init();
+  await NotificationService.showWarning("Test Device");
   runApp(
     MultiProvider(
       providers: [
