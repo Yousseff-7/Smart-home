@@ -480,9 +480,9 @@ class _RoomsPageState extends State<RoomsPage> {
 
                       crossAxisSpacing:15,
 
-                      mainAxisSpacing:15,
+                      mainAxisSpacing:10,
 
-                      childAspectRatio:.9,
+                      childAspectRatio:0.8,
 
                     ),
 

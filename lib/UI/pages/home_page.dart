@@ -114,9 +114,6 @@ class _HomePageState extends State<HomePage> {
       String token = prefs.getString("token") ?? "";
 
       final dio = Dio();
-
-      /// ================= GET ROOMS =================
-
       Response roomsResponse = await dio.get(
         "http://64.225.101.222:5000/api/rooms",
 
@@ -125,12 +122,9 @@ class _HomePageState extends State<HomePage> {
 
       List rooms = roomsResponse.data;
 
-      /// ================= LOOP ROOMS =================
-
       for (var room in rooms) {
         String roomId = room["_id"];
 
-        /// ================= GET DEVICES =================
 
         Response devicesResponse = await dio.get(
           "http://64.225.101.222:5000/api/devices/$roomId",
@@ -140,7 +134,6 @@ class _HomePageState extends State<HomePage> {
 
         List devices = devicesResponse.data;
 
-        /// ================= TURN OFF =================
 
         for (var device in devices) {
           String deviceId = device["_id"];
@@ -393,8 +386,8 @@ class _HomePageState extends State<HomePage> {
                                   crossAxisCount: gridCount,
                                   crossAxisSpacing: 12,
 
-                                  mainAxisSpacing: 12,
-                                  childAspectRatio: 1.6,
+                                  mainAxisSpacing: 8,
+                                  childAspectRatio: 0.8,
                                 ),
 
                             itemBuilder: (context, index) {
@@ -509,7 +502,7 @@ class _HomePageState extends State<HomePage> {
 
                               child: Container(
                                 constraints: const BoxConstraints(
-                                  minHeight: 30,
+                                  minHeight: 20,
                                 ),
 
                                 decoration: BoxDecoration(
@@ -601,86 +594,78 @@ class _HomePageState extends State<HomePage> {
 
   Widget _statusCard({
     required String title,
-
     required String value,
-
     required IconData icon,
-
     required Color color,
   }) {
-    final width = MediaQuery.of(context).size.width;
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
 
     final isMobile = width < 600;
+    final isTablet = width >= 600 && width < 1024;
+
+    final iconSize = isMobile ? 22.0 : isTablet ? 26.0 : 30.0;
+    final valueSize = isMobile ? 22.0 : isTablet ? 26.0 : 30.0;
+    final titleSize = isMobile ? 14.0 : 16.0;
 
     return AnimatedContainer(
-      padding: EdgeInsets.all(isMobile ? 14 : 18),
-
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      padding: EdgeInsets.all(isMobile ? 16 : 22),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(.05),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
-      duration:
-      const Duration(milliseconds: 300),
-
-      curve: Curves.easeInOut,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
-            padding: EdgeInsets.all(isMobile ? 8 : 10),
-
+            width: isMobile ? 48 : 56,
+            height: isMobile ? 48 : 56,
             decoration: BoxDecoration(
-              color: color.withOpacity(.2),
-
-              borderRadius: BorderRadius.circular(10),
+              color: color.withOpacity(.12),
+              borderRadius: BorderRadius.circular(16),
             ),
-
-            child: Icon(icon, color: color, size: isMobile ? 18 : 22),
+            child: Icon(
+              icon,
+              color: color,
+              size: iconSize,
+            ),
           ),
 
-          SizedBox(height: isMobile ? 12 : 16),
+          const Spacer(),
 
           FittedBox(
             fit: BoxFit.scaleDown,
-
             alignment: Alignment.centerLeft,
-
             child: Text(
               value,
-
               maxLines: 1,
-
               style: TextStyle(
-                fontSize: isMobile ? 18 : 24,
-
+                fontSize: valueSize,
                 fontWeight: FontWeight.bold,
-
                 color: Theme.of(context).textTheme.titleLarge?.color,
               ),
             ),
           ),
 
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
 
-          FittedBox(
-            fit: BoxFit.scaleDown,
-
-            alignment: Alignment.centerLeft,
-
-            child: Text(
-              title,
-
-              maxLines: 1,
-
-              style: TextStyle(
-                fontSize: isMobile ? 13 : 15,
-
-                color: Theme.of(context).textTheme.bodyMedium?.color,
-              ),
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: titleSize,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
           ),
         ],
@@ -688,51 +673,61 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _actionButton(String title, IconData icon, Color color) {
+  Widget _actionButton(
+      String title,
+      IconData icon,
+      Color color,
+      ) {
     final width = MediaQuery.of(context).size.width;
 
     final isMobile = width < 600;
+    final isTablet = width >= 600 && width < 1024;
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
       padding: EdgeInsets.symmetric(
-        vertical: isMobile ? 14 : 18,
-
-        horizontal: 12,
+        horizontal: isMobile ? 16 : 20,
+        vertical: isMobile ? 18 : 22,
       ),
-
       decoration: BoxDecoration(
-        color: color.withOpacity(.2),
-
-        borderRadius: BorderRadius.circular(15),
+        color: color.withOpacity(.12),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: color.withOpacity(.15),
+        ),
       ),
-
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-
         children: [
-          Icon(icon, color: color, size: isMobile ? 24 : 30),
+          Container(
+            width: isMobile ? 52 : 60,
+            height: isMobile ? 52 : 60,
+            decoration: BoxDecoration(
+              color: color.withOpacity(.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: isMobile ? 26 : 30,
+            ),
+          ),
 
-          SizedBox(height: isMobile ? 8 : 10),
-          Flexible(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
+          const SizedBox(height: 16),
 
-              child: Text(
-                title,
-
-                textAlign: TextAlign.center,
-
-                style: TextStyle(
-                  fontSize: isMobile ? 14 : 16,
-
-                  color: Theme.of(context).textTheme.titleLarge?.color,
-                ),
-              ),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: isMobile ? 15 : 17,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).textTheme.titleLarge?.color,
             ),
           ),
         ],
       ),
     );
-  }
-
-}
+  }}

@@ -84,7 +84,7 @@ class _UsageHistoryPageState extends State<UsageHistoryPage> {
               crossAxisCount: 2,
               crossAxisSpacing: 15,
               mainAxisSpacing: 15,
-              childAspectRatio: 1.7,
+              childAspectRatio: 1.2,
               children: [
 
                 _summaryCard(

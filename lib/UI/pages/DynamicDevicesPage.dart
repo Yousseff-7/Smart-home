@@ -326,20 +326,20 @@ class _DynamicDevicesPageState
           : GridView.builder(
 
         padding:
-        const EdgeInsets.all(16),
+        const EdgeInsets.all(10),
 
         itemCount: devices.length,
 
         gridDelegate:
         const SliverGridDelegateWithFixedCrossAxisCount(
 
-          crossAxisCount: 2,
+          crossAxisCount: 1,
 
-          crossAxisSpacing: 16,
+          crossAxisSpacing: 12,
 
           mainAxisSpacing: 16,
 
-          childAspectRatio: 0.9,
+          childAspectRatio: 1.6,
 
         ),
 

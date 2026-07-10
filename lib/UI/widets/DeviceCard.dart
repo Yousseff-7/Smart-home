@@ -114,341 +114,342 @@ class _DeviceCardState
 
       ),
 
-      child: Column(
-
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
-
-        mainAxisSize: MainAxisSize.min,
-
-        children: [
-
-          /// ================= TOP =================
-
-          Row(
-
-            mainAxisAlignment:
-            MainAxisAlignment.spaceBetween,
-
-            children: [
-              GestureDetector(
-
-                onTap: widget.onEdit,
-
-                child: Container(
-
-                  padding: const EdgeInsets.all(6),
-
-                  decoration: BoxDecoration(
-
-                    color: Colors.blue.withOpacity(.15),
-
-                    shape: BoxShape.circle,
-
-                  ),
-
-                  child: const Icon(
-
-                    Icons.edit,
-
-                    color: Colors.blue,
-
-                    size: 18,
-
-                  ),
-
-                ),
-
-              ),
-
-              /// DELETE
-
-              GestureDetector(
-
-                onTap: widget.onDelete,
-
-                child: Container(
-
-                  padding:
-                  const EdgeInsets.all(6),
-
-                  decoration: BoxDecoration(
-
-                    color: Colors.blue.withOpacity(
-                      theme.brightness == Brightness.dark ? .15 : .08,
-                    ),
-                    shape: BoxShape.circle,
-
-                  ),
-
-                  child: const Icon(
-
-                    Icons.delete,
-
-                    color: Colors.red,
-
-                    size: 18,
-
-                  ),
-
-                ),
-
-              ),
-
-              /// SWITCH
-
-              Switch(
-
-                value: isOn,
-
-                activeColor: Colors.white,
-
-                activeTrackColor: Colors.black,
-
-                inactiveThumbColor: Colors.orange,
-
-                onChanged: (val) {
-
-                  setState(() {
-
-                    isOn = val;
-
-                  });
-
-                  widget.onToggle(val);
-
-                },
-
-              ),
-
-            ],
-
-          ),
-
-          const SizedBox(height: 10),
-
-          /// ================= ICON =================
-
-          Center(
-
-            child: Image.asset(
-
-              widget.iconPath,
-
-              height: 45,
-
-            ),
-
-          ),
-
-          const SizedBox(height: 12),
-
-          /// ================= NAME =================
-
-          Text(
-
-            widget.name,
-
-            style: TextStyle(
-              color: isOn
-                  ? Colors.white
-                  : theme.textTheme.titleLarge?.color,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-
-          ),
-
-          const SizedBox(height: 4),
-
-          /// ================= STATUS =================
-
-          Text(
-
-            isOn ? "On" : "Off",
-
-            style: TextStyle(
-
-              color:
-
-              aiStatus == "anomaly"
-
-                  ? Colors.red
-
-                  : Colors.green,
-
-              fontSize: 13,
-
-            ),
-
-          ),
-
-          const SizedBox(height: 14),
-
-          /// ================= ACTIONS =================
-
-          Row(
-
-            children: [
-
-              /// ================= STATS =================
-
-              Expanded(
-
-                child: GestureDetector(
-
-                  onTap: () {
-
-                    print("OPEN DASHBOARD");
-                    print("DEVICE ID = ${widget.deviceId}");
-
-                    Navigator.push(
-
-                      context,
-
-                      MaterialPageRoute(
-
-                        builder: (_) => DashboardChartsPage(
-                          deviceId: widget.deviceId,
-                        ),
-
-                      ),
-
-                    );
-
-                  },
-
+      
+      child: SingleChildScrollView(
+        child: Column(
+        
+          crossAxisAlignment:
+          CrossAxisAlignment.start,
+        
+          mainAxisSize: MainAxisSize.min,
+        
+          children: [
+        
+            /// ================= TOP =================
+        
+            Row(
+        
+              mainAxisAlignment:
+              MainAxisAlignment.spaceBetween,
+        
+              children: [
+                GestureDetector(
+        
+                  onTap: widget.onEdit,
+        
                   child: Container(
-
+        
+                    padding: const EdgeInsets.all(6),
+        
+                    decoration: BoxDecoration(
+        
+                      color: Colors.blue.withOpacity(.15),
+        
+                      shape: BoxShape.circle,
+        
+                    ),
+        
+                    child: const Icon(
+        
+                      Icons.edit,
+        
+                      color: Colors.blue,
+        
+                      size: 18,
+        
+                    ),
+        
+                  ),
+        
+                ),
+        
+                /// DELETE
+        
+                GestureDetector(
+        
+                  onTap: widget.onDelete,
+        
+                  child: Container(
+        
                     padding:
-                    const EdgeInsets.symmetric(
+                    const EdgeInsets.all(6),
+        
+                    decoration: BoxDecoration(
+        
+                      color: Colors.blue.withOpacity(
+                        theme.brightness == Brightness.dark ? .15 : .08,
+                      ),
+                      shape: BoxShape.circle,
+        
+                    ),
+        
+                    child: const Icon(
+        
+                      Icons.delete,
+        
+                      color: Colors.red,
+        
+                      size: 18,
+        
+                    ),
+        
+                  ),
+        
+                ),
+        
+                /// SWITCH
+        
+                Switch(
+        
+                  value: isOn,
+        
+                  activeColor: Colors.white,
+        
+                  activeTrackColor: Colors.black,
+        
+                  inactiveThumbColor: Colors.orange,
+        
+                  onChanged: (val) {
+        
+                    setState(() {
+        
+                      isOn = val;
+        
+                    });
+        
+                    widget.onToggle(val);
+        
+                  },
+        
+                ),
+        
+              ],
+        
+            ),
+        
+            const SizedBox(height: 3),
+            /// ================= ICON =================
+        
+            Center(
+              child: Image.asset(
+        
+                widget.iconPath,
+        
+                height: 30,
+        
+              ),
+        
+            ),
+        
+            const SizedBox(height: 12),
+        
+            /// ================= NAME =================
+        
+            Text(
+        
+              widget.name,
+        
+              style: TextStyle(
+                color: isOn
+                    ? Colors.white
+                    : theme.textTheme.titleLarge?.color,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+        
+            ),
+        
+            const SizedBox(height: 4),
+        
+            /// ================= STATUS =================
+        
+            Text(
+        
+              isOn ? "On" : "Off",
+        
+              style: TextStyle(
+        
+                color:
+        
+                aiStatus == "anomaly"
+        
+                    ? Colors.red
+        
+                    : Colors.green,
+        
+                fontSize: 13,
+        
+              ),
+        
+            ),
+        
+            const SizedBox(height: 10),
+        
+            /// ================= ACTIONS =================
+        
+            Row(
+        
+              children: [
+        
+                /// ================= STATS =================
+        
+                Expanded(
+        
+                  child: GestureDetector(
+        
+                    onTap: () {
+        
+                      print("OPEN DASHBOARD");
+                      print("DEVICE ID = ${widget.deviceId}");
+        
+                      Navigator.push(
+        
+                        context,
+        
+                        MaterialPageRoute(
+        
+                          builder: (_) => DashboardChartsPage(
+                            deviceId: widget.deviceId,
+                          ),
+        
+                        ),
+        
+                      );
+        
+                    },
+        
+                    child: Container(
+        
+                      padding:
+                      const EdgeInsets.symmetric(
+                        vertical: 10,
+                      ),
+        
+                      decoration: BoxDecoration(
+        
+                        color:
+                        Colors.white.withOpacity(0.1),
+        
+                        borderRadius:
+                        BorderRadius.circular(12),
+        
+                      ),
+        
+                      child: Center(
+        
+                        child: Text(
+        
+                          "Stats",
+        
+                          style: TextStyle(
+                            color: isOn
+                                ? Colors.white
+                                : theme.textTheme.titleLarge?.color,
+                          ),
+        
+                        ),
+        
+                      ),
+        
+                    ),
+        
+                  ),
+        
+                ),
+        
+                const SizedBox(width: 10),
+        
+                /// ================= AI =================
+        
+                GestureDetector(
+        
+                  onTap: () {
+        
+                    Navigator.push(
+        
+                      context,
+        
+                      MaterialPageRoute(
+        
+                        builder: (_) => AIPage(
+        
+                          deviceId: widget.deviceId,
+        
+                        ),
+        
+                      ),
+        
+                    );
+        
+                  },
+        
+                  child: Container(
+        
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
                       vertical: 10,
                     ),
-
+        
                     decoration: BoxDecoration(
-
+        
                       color:
-                      Colors.white.withOpacity(0.1),
-
+        
+                      aiStatus == "anomaly"
+                          ? Colors.red
+                          : aiStatus == "warning"
+                          ? Colors.orange
+                          : Colors.green,
+        
                       borderRadius:
-                      BorderRadius.circular(12),
-
+                      BorderRadius.circular(20),
+        
                     ),
-
-                    child: Center(
-
-                      child: Text(
-
-                        "Stats",
-
-                        style: TextStyle(
-                          color: isOn
-                              ? Colors.white
-                              : theme.textTheme.titleLarge?.color,
-                        ),
-
-                      ),
-
-                    ),
-
-                  ),
-
-                ),
-
-              ),
-
-              const SizedBox(width: 10),
-
-              /// ================= AI =================
-
-              GestureDetector(
-
-                onTap: () {
-
-                  Navigator.push(
-
-                    context,
-
-                    MaterialPageRoute(
-
-                      builder: (_) => AIPage(
-
-                        deviceId: widget.deviceId,
-
-                      ),
-
-                    ),
-
-                  );
-
-                },
-
-                child: Container(
-
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-
-                  decoration: BoxDecoration(
-
-                    color:
-
-                    aiStatus == "anomaly"
-                        ? Colors.red
-                        : aiStatus == "warning"
-                        ? Colors.orange
-                        : Colors.green,
-
-                    borderRadius:
-                    BorderRadius.circular(20),
-
-                  ),
-
-                  child: Row(
-
-                    children: [
-
-                      Icon(
-
-                        aiStatus == "anomaly"
-
-                            ? Icons.warning
-
-                            : Icons.check_circle,
-                        color: Colors.white,
-                        size: 16,
-
-                      ),
-
-                      const SizedBox(width: 5),
-
-                      Text(
-                        aiStatus == "anomaly"
-
-                            ? "Warning"
-
-                            : "Normal",
-                        style: const TextStyle(
+        
+                    child: Row(
+        
+                      children: [
+        
+                        Icon(
+        
+                          aiStatus == "anomaly"
+        
+                              ? Icons.warning
+        
+                              : Icons.check_circle,
                           color: Colors.white,
+                          size: 16,
+        
                         ),
-
-                      ),
-
-                    ],
-
+        
+                        const SizedBox(width: 5),
+        
+                        Text(
+                          aiStatus == "anomaly"
+        
+                              ? "Warning"
+        
+                              : "Normal",
+                          style: const TextStyle(
+                            color: Colors.white,
+                          ),
+        
+                        ),
+        
+                      ],
+        
+                    ),
+        
                   ),
-
+        
                 ),
-
-              ),
-
-            ],
-
-          ),
-
-        ],
-
+        
+              ],
+        
+            ),
+        
+          ],
+        
+        ),
       ),
 
     );
