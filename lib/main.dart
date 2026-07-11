@@ -16,7 +16,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await NotificationService.init();
-  await NotificationService.showWarning("Test Device");
   runApp(
     MultiProvider(
       providers: [
@@ -44,6 +43,7 @@ class MyApp extends StatelessWidget {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return MaterialApp(
+
           debugShowCheckedModeBanner: false,
 
           theme: AppTheme.lightTheme,

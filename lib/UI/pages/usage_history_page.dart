@@ -60,14 +60,11 @@ class _UsageHistoryPageState extends State<UsageHistoryPage> {
         title: const Text("Usage History"),
       ),
 
-      body: Padding(
+      body:SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-
           children: [
-
             /// SUMMARY
             Text(
               "Today's Summary",
@@ -84,43 +81,39 @@ class _UsageHistoryPageState extends State<UsageHistoryPage> {
               crossAxisCount: 2,
               crossAxisSpacing: 10,
               mainAxisSpacing: 8,
-              childAspectRatio: 1.5,
+              childAspectRatio: 1,
               children: [
-
                 _summaryCard(
                   icon: Icons.bolt,
                   title: "Energy",
                   value: "3.2 kWh",
                   color: Colors.orange,
                 ),
-
                 _summaryCard(
                   icon: Icons.flash_on,
                   title: "Avg Power",
                   value: "82 W",
                   color: Colors.amber,
                 ),
-
                 _summaryCard(
                   icon: Icons.history,
                   title: "Readings",
                   value: "${history.length}",
                   color: Colors.blue,
                 ),
-
                 _summaryCard(
                   icon: Icons.warning_amber_rounded,
                   title: "Alerts",
                   value: history
-                      .where((e) =>
-                  e["aiPrediction"]?["status"] == "anomaly")
+                      .where((e) => e["aiPrediction"]?["status"] == "anomaly")
                       .length
                       .toString(),
                   color: Colors.red,
                 ),
-
               ],
             ),
+
+            const SizedBox(height: 20),
 
             _buildEnergyStatus(),
 
@@ -128,7 +121,7 @@ class _UsageHistoryPageState extends State<UsageHistoryPage> {
 
             _buildRecommendation(),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
 
             Text(
               "History",
@@ -136,44 +129,30 @@ class _UsageHistoryPageState extends State<UsageHistoryPage> {
             ),
 
             const SizedBox(height: 8),
-            Expanded(
 
-              child: loading
-
-                  ? const Center(
+            loading
+                ? const Center(
+              child: Padding(
+                padding: EdgeInsets.all(30),
                 child: CircularProgressIndicator(),
-              )
-
-                  : ListView.builder(
-
-                itemCount: history.length,
-
-                itemBuilder: (context, index) {
-
-                  return Padding(
-
-                    padding: const EdgeInsets.only(bottom: 15),
-
-                    child: HistoryCard(
-
-                      data: history[index],
-
-                    ),
-
-                  );
-
-                },
-
               ),
-
+            )
+                : ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: history.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 15),
+                  child: HistoryCard(
+                    data: history[index],
+                  ),
+                );
+              },
             ),
-
           ],
-
         ),
-
-      ),
-
+      )
     );
   }
 

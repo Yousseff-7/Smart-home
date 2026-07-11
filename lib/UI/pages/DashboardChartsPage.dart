@@ -126,14 +126,9 @@ class _DashboardChartsPageState
 
       /// قلل عدد النقاط المرسومة
 
-      currentValues =
-          currentValues.take(300).toList();
-
-      voltageValues =
-          voltageValues.take(300).toList();
-
-      powerValues =
-          powerValues.take(300).toList();
+      currentValues = currentValues.reversed.take(50).toList().reversed.toList();
+      voltageValues = voltageValues.reversed.take(50).toList().reversed.toList();
+      powerValues = powerValues.reversed.take(50).toList().reversed.toList();
 
       if (readings.isNotEmpty) {
 
@@ -263,6 +258,29 @@ class _DashboardChartsPageState
         isLoading = false;
       });
     }
+  }
+
+  List<double> getChartValues() {
+
+    switch(selectedTime){
+
+      case 0:
+        return powerValues;
+
+      case 1:
+        return powerValues.reversed.take(50).toList().reversed.toList();
+
+      case 2:
+        return monthlyPower;
+
+      case 3:
+        return yearlyPower;
+
+      default:
+        return powerValues;
+
+    }
+
   }
   @override
   Widget build(BuildContext context) {
@@ -496,55 +514,6 @@ class _DashboardChartsPageState
         ],
       ),
 
-      const SizedBox(height: 20),
-
-            /// ================= MAIN CHART =================
-
-            Padding(
-
-              padding:
-              const EdgeInsets.symmetric(
-                horizontal: 16,
-              ),
-
-              child: Container(
-
-                padding:
-                const EdgeInsets.all(16),
-
-                decoration: BoxDecoration(
-
-                  color: theme.cardColor,
-
-                  borderRadius:
-                  BorderRadius.circular(
-                    20,
-                  ),
-
-                ),
-
-                child: SizedBox(
-
-                  height: 220,
-
-                  child: LineChartWidget(
-
-                    values:
-                    selectedTime == 3
-                        ? yearlyPower
-                        : monthlyPower,
-
-                    color:
-                    Colors.cyan,
-
-                  ),
-
-                ),
-
-              ),
-
-            ),
-
             const SizedBox(height: 25),
 
             /// ================= TABS =================
@@ -663,16 +632,9 @@ class _DashboardChartsPageState
           height: 220,
 
           child: LineChartWidget(
+            values: getSelectedValues(),
 
-            values:
-
-            selectedTime == 3
-
-                ? yearlyPower
-
-                : monthlyPower,
-
-            color: Colors.cyan,
+            color: colors[selectedTab],
 
           ),
 
@@ -746,24 +708,7 @@ class _DashboardChartsPageState
 
               ),
 
-              child: Text(
 
-                tabs[index],
-
-                style: TextStyle(
-
-                  color: active
-
-                      ? colors[index]
-
-                      : Colors.white70,
-
-                  fontWeight:
-                  FontWeight.bold,
-
-                ),
-
-              ),
 
             ),
 
@@ -773,71 +718,10 @@ class _DashboardChartsPageState
 
       ),
 
-      const SizedBox(height: 20),
+
 
       /// SENSOR CHART
 
-      Container(
-
-        padding:
-        const EdgeInsets.all(18),
-
-        decoration: BoxDecoration(
-
-          color: theme.cardColor,
-
-          borderRadius:
-          BorderRadius.circular(18),
-
-        ),
-
-        child: Column(
-
-          crossAxisAlignment:
-          CrossAxisAlignment.start,
-
-          children: [
-
-            Text(
-
-              "${tabs[selectedTab]} Chart",
-
-              style:  TextStyle(
-
-                color: theme.textTheme.titleLarge?.color,
-
-                fontSize: 18,
-
-                fontWeight:
-                FontWeight.bold,
-
-              ),
-
-            ),
-
-            const SizedBox(height: 15),
-
-            SizedBox(
-
-              height: 220,
-
-              child: LineChartWidget(
-
-                values:
-                dataSets[selectedTab],
-
-                color:
-                colors[selectedTab],
-
-              ),
-
-            ),
-
-          ],
-
-        ),
-
-      ),
 
       const SizedBox(height: 25),
 
@@ -1003,8 +887,7 @@ class _DashboardChartsPageState
 
             maxLines: 1,
 
-            overflow:
-            TextOverflow.ellipsis,
+            overflow: TextOverflow.visible,
 
             style: TextStyle(
 
@@ -1026,6 +909,37 @@ class _DashboardChartsPageState
       ),
 
     );
+
+  }
+  List<double> getSelectedValues() {
+
+    if (selectedTab == 0) {
+
+      switch (selectedTime) {
+
+        case 0:
+          return currentValues;
+
+        case 1:
+          return currentValues.reversed.take(50).toList().reversed.toList();
+
+        case 2:
+          return monthlyPower;
+
+        case 3:
+          return yearlyPower;
+
+      }
+
+    }
+
+    if (selectedTab == 1) {
+
+      return voltageValues;
+
+    }
+
+    return powerValues;
 
   }
 
@@ -1071,13 +985,19 @@ class LineChartWidget
 
     }
 
-    double maxY =
-        values.reduce(
-              (a, b) =>
-          a > b ? a : b,
-        ) +
-            10;
+    double maxValue =
+    values.reduce((a,b)=>a>b?a:b);
 
+    double minValue =
+    values.reduce((a,b)=>a<b?a:b);
+
+    double maxY = maxValue * 1.1;
+
+    double minY = minValue * 0.9;
+
+    if(minY < 0){
+      minY = 0;
+    }
     return LineChart(
 
       LineChartData(
@@ -1252,12 +1172,11 @@ class LineChartWidget
             )
                 .toList(),
 
-            isCurved: true,
+            isCurved: false,
 
             color: color,
 
-            barWidth: 4,
-
+            barWidth: 2.5,
             isStrokeCapRound:
             true,
 
@@ -1274,17 +1193,30 @@ class LineChartWidget
             ),
 
             dotData: FlDotData(
-
-              show:
-              values.length < 30,
-
+              show: true,
             ),
-
           ),
 
         ],
+        lineTouchData: LineTouchData(
+          enabled: true,
+          touchTooltipData: LineTouchTooltipData(
+            getTooltipItems: (spots) {
+              return spots.map((spot) {
+                return LineTooltipItem(
+                  spot.y.toStringAsFixed(2),
+                  const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                );
+              }).toList();
+            },
+          ),
+        ),
 
       ),
+
 
     );
 

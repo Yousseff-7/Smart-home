@@ -12,6 +12,24 @@ class NotificationService {
     );
 
     await notifications.initialize(settings);
+
+    await notifications
+        .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+
+    const AndroidNotificationChannel channel =
+    AndroidNotificationChannel(
+      'ai_channel',
+      'AI Alerts',
+      description: 'AI Warning Notifications',
+      importance: Importance.high,
+    );
+
+    await notifications
+        .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
   }
 
   static Future showWarning(String deviceName) async {
@@ -23,6 +41,7 @@ class NotificationService {
         android: AndroidNotificationDetails(
           "ai_channel",
           "AI Alerts",
+          channelDescription: "AI Warning Notifications",
           importance: Importance.max,
           priority: Priority.high,
         ),
